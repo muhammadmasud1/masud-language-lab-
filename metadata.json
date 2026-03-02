@@ -1,0 +1,8 @@
+{
+  "name": "Masud Language Lab",
+  "description": "A high-fidelity portfolio and learning platform for Chinese language instruction, interpretation, and expert consultation based in Bangladesh.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
