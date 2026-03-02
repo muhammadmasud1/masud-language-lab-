@@ -71,6 +71,7 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
       if (type === 'books') await dataService.deleteBook(id);
       if (type === 'blog') await dataService.deleteArticle(id);
       if (type === 'quiz') await dataService.deleteQuizQuestion(id);
+      if (type === 'enrollments') await dataService.deleteEnrollment(id);
       await loadAllData();
       showStatus('success', 'সফলভাবে মুছে ফেলা হয়েছে');
     } catch (err) {
@@ -88,6 +89,20 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
       showStatus('success', 'পেমেন্ট অনুমোদিত হয়েছে');
     } catch (err) {
       showStatus('error', 'অনুমোদন করা যায়নি');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    if (!confirm('আপনি কি নিশ্চিত যে আপনি এই পেমেন্টটি বাতিল করতে চান?')) return;
+    setIsLoading(true);
+    try {
+      await dataService.updateEnrollmentStatus(id, 'rejected');
+      await loadAllData();
+      showStatus('success', 'পেমেন্ট বাতিল করা হয়েছে');
+    } catch (err) {
+      showStatus('error', 'বাতিল করা যায়নি');
     } finally {
       setIsLoading(false);
     }
@@ -248,12 +263,24 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
                        <code className="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-[10px] font-bold text-[#C1121F]">{e.transactionId}</code>
                      </td>
                      <td className="px-8 py-5">
-                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${e.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{e.status}</span>
+                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                         e.status === 'approved' ? 'bg-green-100 text-green-700' : 
+                         e.status === 'rejected' ? 'bg-red-100 text-red-700' : 
+                         'bg-yellow-100 text-yellow-700'
+                       }`}>
+                         {e.status}
+                       </span>
                      </td>
-                     <td className="px-8 py-5 text-right">
+                     <td className="px-8 py-5 text-right space-x-2">
                        {e.status === 'pending' && (
-                         <button onClick={() => handleApprove(e.id)} className="px-4 py-2 bg-green-500 text-white rounded-xl text-[10px] font-black uppercase">Approve</button>
+                         <>
+                           <button onClick={() => handleApprove(e.id)} className="px-4 py-2 bg-green-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-green-600 transition-colors">Approve</button>
+                           <button onClick={() => handleReject(e.id)} className="px-4 py-2 bg-orange-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-orange-600 transition-colors">Cancel</button>
+                         </>
                        )}
+                       <button onClick={() => handleDelete(e.id, 'enrollments')} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors inline-flex items-center justify-center">
+                         <Trash2 className="w-4 h-4" />
+                       </button>
                      </td>
                    </tr>
                  ))}
@@ -279,7 +306,7 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
                   activeTab === 'blog' ? localArticles : localQuizQuestions).map((item: any) => (
                   <tr key={item.id} className="text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                     <td className="px-8 py-5 font-bold text-zinc-900 dark:text-zinc-100">{item.title?.EN || item.title || item.question}</td>
-                    <td className="px-8 py-5 text-zinc-400">{item.price || item.courseId || item.category || 'Quiz'}</td>
+                    <td className="px-8 py-5 text-zinc-400">{item.price ? `৳${item.price}` : (item.courseId || item.category || 'Quiz')}</td>
                     <td className="px-8 py-5 text-right space-x-2">
                       <button onClick={() => { setEditingItem(item); setIsModalOpen(true); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit3 className="w-4 h-4" /></button>
                       <button onClick={() => handleDelete(item.id, activeTab)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>

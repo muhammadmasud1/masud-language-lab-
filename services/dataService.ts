@@ -195,6 +195,14 @@ export const dataService = {
     
     return !error;
   },
+  deleteEnrollment: async (id: string) => {
+    const { error } = await supabase
+      .from('enrollments')
+      .delete()
+      .eq('id', id);
+    
+    return !error;
+  },
 
   getBookOrders: async (userId?: string): Promise<BookOrder[]> => {
     let query = supabase.from('book_orders').select('*').order('date', { ascending: false });

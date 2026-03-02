@@ -112,7 +112,7 @@ const StorePage: React.FC<Props> = ({ lang }) => {
                   <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-8 leading-relaxed line-clamp-2 font-medium">{book.description[lang]}</p>
                 </div>
                 <div className="flex items-center justify-between pt-8 border-t border-zinc-100 dark:border-zinc-800 mt-8">
-                  <span className="text-3xl font-black text-zinc-900 dark:text-white">{book.price}</span>
+                  <span className="text-3xl font-black text-zinc-900 dark:text-white">৳{book.price}</span>
                   <button 
                     onClick={() => addToCart(book)}
                     className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl flex items-center gap-2 ${
@@ -178,7 +178,7 @@ const StorePage: React.FC<Props> = ({ lang }) => {
                       <img src={item.image} className="w-16 h-20 object-cover rounded-xl shadow-md" alt="" />
                       <div className="flex-grow">
                         <h4 className="font-black text-sm leading-tight mb-2 pr-6">{item.title[lang]}</h4>
-                        <p className="text-[#C1121F] font-black text-lg">{item.price}</p>
+                        <p className="text-[#C1121F] font-black text-lg">৳{item.price}</p>
                       </div>
                       <button onClick={() => removeFromCart(item.id)} className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-red-500 transition-all"><X className="w-4 h-4" /></button>
                     </div>

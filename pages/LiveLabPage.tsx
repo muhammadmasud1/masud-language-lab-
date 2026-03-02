@@ -157,7 +157,7 @@ const LiveLabPage: React.FC<Props> = ({ lang }) => {
             <h3 className="text-xs font-black uppercase tracking-widest text-[#C1121F] mb-4">Instructor Profile</h3>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center overflow-hidden">
-                <img src="https://picsum.photos/seed/masud/100/100" alt="Masud Rana" className="w-full h-full object-cover" />
+                <img src="https://i.ibb.co.com/Ngfcgwvd/1000127502.jpg" alt="Masud Rana" className="w-full h-full object-cover" />
               </div>
               <div>
                 <div className="font-bold text-sm">Md. Masud Rana</div>
@@ -232,11 +232,11 @@ const LiveLabPage: React.FC<Props> = ({ lang }) => {
                     </div>
                   </div>
                 </motion.div>
-                <div className="mt-8 text-center">
-                  <div className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 mb-2">
+                <div className="mt-4 md:mt-8 text-center">
+                  <div className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-zinc-500 mb-1 md:mb-2">
                     {isConnected ? 'Voice Link Active' : 'Ready for Connection'}
                   </div>
-                  <div className="text-[10px] text-zinc-700 uppercase tracking-widest">
+                  <div className="text-[8px] md:text-[10px] text-zinc-700 uppercase tracking-widest">
                     {isConnected ? 'Secure Audio Channel 01' : 'Awaiting User Authorization'}
                   </div>
                 </div>
@@ -280,37 +280,37 @@ const LiveLabPage: React.FC<Props> = ({ lang }) => {
             </AnimatePresence>
 
             {/* Controls Bar */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 px-6 py-4 bg-black/60 backdrop-blur-xl border border-white/10 rounded-[2rem]">
+            <div className="absolute bottom-3 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-4 px-3 py-2 md:px-6 md:py-4 bg-black/60 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2rem] z-30 w-[95%] md:w-auto justify-center">
               <button 
                 onClick={() => setIsMuted(!isMuted)}
-                className={`p-4 rounded-2xl transition-all ${isMuted ? 'bg-red-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+                className={`p-3 md:p-4 rounded-xl md:rounded-2xl transition-all ${isMuted ? 'bg-red-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
               >
-                {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                {isMuted ? <MicOff className="w-4 h-4 md:w-5 md:h-5" /> : <Mic className="w-4 h-4 md:w-5 md:h-5" />}
               </button>
               
               <button 
                 onClick={() => setIsVideoOn(!isVideoOn)}
-                className={`p-4 rounded-2xl transition-all ${!isVideoOn ? 'bg-red-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+                className={`p-3 md:p-4 rounded-xl md:rounded-2xl transition-all ${!isVideoOn ? 'bg-red-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
               >
-                {!isVideoOn ? <VideoOff className="w-5 h-5" /> : <Video className="w-5 h-5" />}
+                {!isVideoOn ? <VideoOff className="w-4 h-4 md:w-5 md:h-5" /> : <Video className="w-4 h-4 md:w-5 md:h-5" />}
               </button>
 
-              <div className="w-px h-8 bg-white/10 mx-2" />
+              <div className="w-px h-6 md:h-8 bg-white/10 mx-1 md:mx-2" />
 
               {!isConnected ? (
                 <button 
                   onClick={startSession}
                   disabled={isConnecting}
-                  className="px-8 py-4 bg-[#C1121F] text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-red-700 transition-all shadow-lg shadow-red-500/20 disabled:opacity-50"
+                  className="px-4 py-3 md:px-8 md:py-4 bg-[#C1121F] text-white rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-xs hover:bg-red-700 transition-all shadow-lg shadow-red-500/20 disabled:opacity-50 whitespace-nowrap"
                 >
                   {isConnecting ? 'Connecting...' : 'Start Session'}
                 </button>
               ) : (
                 <button 
                   onClick={stopSession}
-                  className="px-8 py-4 bg-zinc-100 text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white transition-all flex items-center gap-2"
+                  className="px-4 py-3 md:px-8 md:py-4 bg-zinc-100 text-black rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-xs hover:bg-white transition-all flex items-center gap-2 whitespace-nowrap"
                 >
-                  <PhoneOff className="w-4 h-4" />
+                  <PhoneOff className="w-3 h-3 md:w-4 md:h-4" />
                   End Call
                 </button>
               )}

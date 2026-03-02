@@ -7,6 +7,7 @@ const motion = m as any;
 import { Calendar, User, ArrowRight, X, Clock, Tag, PlayCircle, FileText, ImageIcon, FileSearch } from 'lucide-react';
 import { Language, Article } from '../types';
 import { dataService } from '../services/dataService';
+import { getYouTubeEmbedUrl } from '../utils/youtube';
 
 interface Props { lang: Language; }
 
@@ -157,7 +158,7 @@ const BlogPage: React.FC<Props> = ({ lang }) => {
                    {selectedArticle.type === 'video' && selectedArticle.videoUrl ? (
                       <div className="aspect-video w-full rounded-[3rem] overflow-hidden mb-12 border-4 border-zinc-100 dark:border-zinc-800 shadow-2xl bg-black">
                          <iframe 
-                            src={selectedArticle.videoUrl.replace('watch?v=', 'embed/')} 
+                            src={getYouTubeEmbedUrl(selectedArticle.videoUrl)} 
                             className="w-full h-full"
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

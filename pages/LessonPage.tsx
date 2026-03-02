@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Language, User, Lesson, Course, Enrollment } from '../types';
 import { dataService } from '../services/dataService';
+import { getYouTubeEmbedUrl } from '../utils/youtube';
 
 interface Props {
   lang: Language;
@@ -144,10 +145,7 @@ const LessonPage: React.FC<Props> = ({ lang, user }) => {
               
               <div className="aspect-video w-full rounded-[3rem] overflow-hidden bg-black shadow-2xl border-4 border-white dark:border-zinc-800 mb-12 relative group">
                 <iframe 
-                  src={currentLesson.videoUrl.includes('youtube.com/watch?v=') 
-                    ? currentLesson.videoUrl.replace('watch?v=', 'embed/') 
-                    : currentLesson.videoUrl
-                  } 
+                  src={getYouTubeEmbedUrl(currentLesson.videoUrl)} 
                   className="w-full h-full" 
                   frameBorder="0" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

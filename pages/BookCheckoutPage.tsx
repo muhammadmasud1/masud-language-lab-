@@ -141,7 +141,7 @@ const BookCheckoutPage: React.FC<Props> = ({ lang, user }) => {
                   <img src={item.image} className="w-16 h-20 object-cover rounded-xl shadow-md border border-zinc-100 dark:border-zinc-800" alt="" />
                   <div>
                     <h4 className="text-sm font-black leading-tight mb-2 pr-2">{item.title[lang]}</h4>
-                    <p className="font-black text-sm text-[#C1121F]">{item.price}</p>
+                    <p className="font-black text-sm text-[#C1121F]">৳{item.price}</p>
                   </div>
                 </div>
               ))}

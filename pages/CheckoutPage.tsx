@@ -136,7 +136,7 @@ const CheckoutPage: React.FC<Props> = ({ lang, user }) => {
             <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800">
               <div className="flex justify-between items-center text-xl font-bold">
                 <span>Total</span>
-                <span className="text-[#C1121F]">{course.price}</span>
+                <span className="text-[#C1121F]">৳{course.price}</span>
               </div>
             </div>
           </div>

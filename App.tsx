@@ -82,6 +82,10 @@ const App: React.FC = () => {
     localStorage.setItem('lang', newLang);
   };
 
+  const closeMobileMenu = React.useCallback(() => {
+    setIsMobileMenuOpen(false);
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem('huayu_user');
     setCurrentUser(null);
@@ -89,13 +93,24 @@ const App: React.FC = () => {
     setIsMobileMenuOpen(false);
   };
 
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <Router>
-      <ScrollToTop closeMenu={() => setIsMobileMenuOpen(false)} />
+      <ScrollToTop closeMenu={closeMobileMenu} />
       <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-500">
         <CustomCursor />
         
-        {/* Modern Sticky Navbar - Matching Screenshot */}
+        {/* Modern Sticky Navbar */}
         <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
           isScrolled 
           ? 'h-20 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50 shadow-lg' 
@@ -119,8 +134,8 @@ const App: React.FC = () => {
                 </div>
               </Link>
 
-              {/* Desktop Nav Links */}
-              <div className="hidden lg:flex items-center justify-center flex-grow">
+              {/* Desktop Nav Links - Visible above 768px (md) */}
+              <div className="hidden md:flex items-center justify-center flex-grow">
                 <div className="flex items-center gap-1">
                   {NAV_LINKS.map(link => (
                     <Link 
@@ -223,77 +238,20 @@ const App: React.FC = () => {
                   </Link>
                 )}
 
+                {/* Hamburger Button - Visible below 768px (md) */}
                 <button 
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="lg:hidden p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-[#C1121F] transition-all"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsMobileMenuOpen(!isMobileMenuOpen);
+                  }}
+                  className="md:hidden p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-[#C1121F] transition-all relative z-[100]"
                 >
                   {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
               </div>
             </div>
           </div>
-          {/* Mobile Menu */}
-          <AnimatePresence>
-            {isMobileMenuOpen && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="lg:hidden bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 overflow-hidden"
-              >
-                <div className="px-6 py-8 flex flex-col gap-4">
-                  {NAV_LINKS.map(link => (
-                    <Link 
-                      key={link.path} 
-                      to={link.path}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="text-lg font-black text-zinc-600 dark:text-zinc-400 hover:text-[#C1121F] transition-all"
-                    >
-                      {link.label[lang]}
-                    </Link>
-                  ))}
-                  
-                  <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-2" />
-                  
-                  {currentUser ? (
-                    <>
-                      <Link 
-                        to="/profile" 
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center gap-3 text-lg font-black text-zinc-600 dark:text-zinc-400 hover:text-[#C1121F] transition-all"
-                      >
-                        <UserCircle className="w-5 h-5" />
-                        {lang === 'BN' ? 'প্রোফাইল' : 'My Profile'}
-                      </Link>
-                      <Link 
-                        to="/dashboard" 
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center gap-3 text-lg font-black text-zinc-600 dark:text-zinc-400 hover:text-[#C1121F] transition-all"
-                      >
-                        <LayoutDashboard className="w-5 h-5" />
-                        {lang === 'BN' ? 'ড্যাশবোর্ড' : 'Dashboard'}
-                      </Link>
-                      <button 
-                        onClick={handleLogout}
-                        className="flex items-center gap-3 text-lg font-black text-red-500 transition-all"
-                      >
-                        <LogOut className="w-5 h-5" />
-                        {lang === 'BN' ? 'লগআউট' : 'Logout'}
-                      </button>
-                    </>
-                  ) : (
-                    <Link 
-                      to="/login" 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="px-8 py-4 bg-[#C1121F] text-white rounded-2xl text-center font-black uppercase tracking-widest text-sm"
-                    >
-                      {lang === 'BN' ? 'লগইন' : 'Login'}
-                    </Link>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </nav>
 
         {/* Global Padding Fix */}
@@ -322,6 +280,93 @@ const App: React.FC = () => {
         </main>
 
         <AIChatbot lang={lang} />
+        
+        {/* Mobile Menu Overlay & Slide-in Drawer */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <div className="md:hidden">
+              {/* Background Overlay */}
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+              />
+
+              {/* Slide-in Menu */}
+              <motion.div 
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed top-0 right-0 bottom-0 w-[80%] max-w-sm bg-white dark:bg-zinc-950 z-[9999] shadow-2xl flex flex-col"
+              >
+                <div className="p-6 flex justify-between items-center border-b border-zinc-100 dark:border-zinc-800">
+                  <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-[#C1121F] rounded-xl flex items-center justify-center text-white font-black text-xl chinese-font">华</div>
+                    <span className="font-black text-sm uppercase tracking-tighter">MASUD LAB</span>
+                  </Link>
+                  <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-900 text-zinc-400">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="flex-grow overflow-y-auto p-6 flex flex-col gap-2">
+                  {NAV_LINKS.map(link => (
+                    <Link 
+                      key={link.path} 
+                      to={link.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-between px-4 py-4 rounded-2xl text-lg font-black text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:text-[#C1121F] transition-all group"
+                    >
+                      {link.label[lang]}
+                      <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+                  {currentUser ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      <Link 
+                        to="/profile" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800"
+                      >
+                        <UserCircle className="w-6 h-6 text-[#C1121F]" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">{lang === 'BN' ? 'প্রোফাইল' : 'Profile'}</span>
+                      </Link>
+                      <Link 
+                        to="/dashboard" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex flex-col items-center gap-2 p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800"
+                      >
+                        <LayoutDashboard className="w-6 h-6 text-[#C1121F]" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">{lang === 'BN' ? 'ড্যাশবোর্ড' : 'Dashboard'}</span>
+                      </Link>
+                      <button 
+                        onClick={handleLogout}
+                        className="col-span-2 flex items-center justify-center gap-3 p-4 bg-red-50 dark:bg-red-900/10 text-red-500 rounded-2xl font-black uppercase tracking-widest text-xs"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        {lang === 'BN' ? 'লগআউট' : 'Logout'}
+                      </button>
+                    </div>
+                  ) : (
+                    <Link 
+                      to="/login" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block w-full py-5 bg-[#C1121F] text-white rounded-2xl text-center font-black uppercase tracking-widest text-sm shadow-xl shadow-red-500/20"
+                    >
+                      {lang === 'BN' ? 'লগইন করুন' : 'Login Now'}
+                    </Link>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
         
         {/* Footer */}
         <footer className="bg-zinc-950 py-20 border-t border-zinc-800">

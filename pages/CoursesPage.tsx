@@ -83,7 +83,7 @@ const CoursesPage: React.FC<Props> = ({ lang, user }) => {
                   <div className="flex items-center gap-3 text-xs font-bold uppercase text-zinc-400"><BarChart className="w-4 h-4 text-[#C1121F]" /><span>HSK Certified</span></div>
                 </div>
                 <div className="flex items-center justify-between pt-8 border-t border-zinc-100 dark:border-zinc-800">
-                  <span className="text-2xl font-black text-[#C1121F]">{course.price}</span>
+                  <span className="text-2xl font-black text-[#C1121F]">৳{course.price}</span>
                   {isEnrolled ? (
                     <button onClick={() => navigate('/dashboard')} className="px-6 py-4 bg-zinc-900 dark:bg-zinc-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2"><LayoutDashboard className="w-4 h-4" /> Start Learning</button>
                   ) : (
