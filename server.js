@@ -1,8 +1,13 @@
 
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const cors = require('cors');
+import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import cors from 'cors';
+import axios from 'axios';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +37,17 @@ const readDB = () => JSON.parse(fs.readFileSync(DB_FILE));
 const writeDB = (data) => fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 
 // --- API ENDPOINTS ---
+
+// bKash API Routes
+app.post('/api/bkash/create-payment', async (req, res) => {
+    try {
+        // Implement bKash Create Payment API call here using axios
+        // Use process.env.BKASH_APP_KEY, etc.
+        res.json({ success: true, message: 'Payment created' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to create payment' });
+    }
+});
 
 // Generic Get All
 app.get('/api/:module', (req, res) => {
