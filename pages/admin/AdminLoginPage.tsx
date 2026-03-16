@@ -8,6 +8,9 @@ import { Lock, User as UserIcon, ShieldAlert, ArrowRight } from 'lucide-react';
 import { Language, User } from '../../types';
 import { dataService } from '../../services/dataService';
 
+import { auth } from '../../services/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+
 interface Props { 
   lang: Language;
   setUser: (user: User) => void;
@@ -25,22 +28,37 @@ const AdminLoginPage: React.FC<Props> = ({ lang, setUser }) => {
     setError('');
 
     try {
-      const foundUser = await dataService.login(formData.email, formData.password);
+      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      const firebaseUser = userCredential.user;
 
-      if (foundUser && foundUser.isAdmin) {
-        const { password, ...userSession } = foundUser;
-        localStorage.setItem('huayu_user', JSON.stringify(userSession));
-        setUser(userSession as User);
+      const foundUser = await dataService.getUserById(firebaseUser.uid);
+
+      // Hardcoded admin check for the user's email as a fallback
+      const adminEmails = ['englishpodcaststorytelling@gmail.com', 'mdmasudrana0783@gmail.com'];
+      const isAdminEmail = firebaseUser.email && adminEmails.includes(firebaseUser.email);
+
+      if ((foundUser && foundUser.isAdmin) || isAdminEmail) {
+        const adminUser = foundUser || {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          name: firebaseUser.displayName || 'Admin',
+          isAdmin: true,
+          enrolledCourses: [],
+          purchasedBooks: []
+        };
+        localStorage.setItem('huayu_user', JSON.stringify(adminUser));
+        setUser(adminUser as User);
         navigate('/admin');
       } else if (foundUser && !foundUser.isAdmin) {
         setError(lang === 'EN' ? 'Access denied. Not an administrator.' : 'প্রবেশাধিকার নেই। আপনি এডমিন নন।');
         setIsLoading(false);
       } else {
-        setError(lang === 'EN' ? 'Invalid admin credentials.' : 'ভুল এডমিন তথ্য।');
+        setError(lang === 'EN' ? 'Admin profile not found in database.' : 'এডমিন প্রোফাইল পাওয়া যায়নি।');
         setIsLoading(false);
       }
-    } catch (err) {
-      setError(lang === 'EN' ? 'Connection error.' : 'নেটওয়ার্ক সমস্যা।');
+    } catch (err: any) {
+      console.error("Admin Login Error:", err);
+      setError(lang === 'EN' ? 'Invalid admin credentials.' : 'ভুল এডমিন তথ্য।');
       setIsLoading(false);
     }
   };

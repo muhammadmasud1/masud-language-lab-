@@ -4,6 +4,17 @@ import { supabase } from './supabaseClient';
 
 export const dataService = {
   // --- Users ---
+  getUserById: async (id: string): Promise<User | null> => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) return null;
+    return data as User;
+  },
+
   getUserByEmail: async (email: string): Promise<User | null> => {
     const { data, error } = await supabase
       .from('users')
@@ -20,7 +31,11 @@ export const dataService = {
       .from('users')
       .insert([user]);
     
-    return !error;
+    if (error) {
+      console.error("Supabase Register Error:", error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
   },
 
   updateUser: async (id: string, updates: Partial<User>) => {
@@ -30,18 +45,6 @@ export const dataService = {
       .eq('id', id);
     
     return !error;
-  },
-
-  login: async (email: string, password: string): Promise<User | null> => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email.toLowerCase())
-      .eq('password', password)
-      .single();
-    
-    if (error) return null;
-    return data as User;
   },
 
   // --- Courses ---

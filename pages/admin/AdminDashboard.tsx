@@ -9,11 +9,14 @@ import {
 import { Language, Course, Article, Enrollment, BookOrder, Book, QuizQuestion, Lesson } from '../../types';
 import { dataService } from '../../services/dataService';
 
-interface Props { lang: Language; }
+import { auth } from '../../services/firebase';
+import { signOut } from 'firebase/auth';
+
+interface Props { lang: Language; setUser: (user: any) => void; }
 
 type Tab = 'overview' | 'courses' | 'lessons' | 'enrollments' | 'books' | 'blog' | 'quiz';
 
-const AdminDashboard: React.FC<Props> = ({ lang }) => {
+const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [isLoading, setIsLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -23,20 +26,33 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
   const [localBooks, setLocalBooks] = useState<Book[]>([]);
   const [localLessons, setLocalLessons] = useState<Lesson[]>([]);
   const [localEnrollments, setLocalEnrollments] = useState<Enrollment[]>([]);
+  const [localBookOrders, setLocalBookOrders] = useState<BookOrder[]>([]);
   const [localQuizQuestions, setLocalQuizQuestions] = useState<QuizQuestion[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      localStorage.removeItem('huayu_user');
+      setUser(null);
+      window.location.href = '#/';
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
+
   const loadAllData = async () => {
     setIsLoading(true);
     try {
-      const [courses, articles, books, lessons, enrollments, quiz] = await Promise.all([
+      const [courses, articles, books, lessons, enrollments, orders, quiz] = await Promise.all([
         dataService.getCourses(),
         dataService.getArticles(),
         dataService.getBooks(),
         dataService.getLessons(),
         dataService.getEnrollments(),
+        dataService.getBookOrders(),
         dataService.getQuizQuestions()
       ]);
       
@@ -45,6 +61,7 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
       setLocalBooks(books);
       setLocalLessons(lessons);
       setLocalEnrollments(enrollments);
+      setLocalBookOrders(orders);
       setLocalQuizQuestions(quiz);
     } catch (err) {
       showStatus('error', 'ডাটা লোড করতে সমস্যা হয়েছে।');
@@ -159,6 +176,20 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
           status: 'published'
         };
         await dataService.saveArticle(data);
+      } else if (activeTab === 'quiz') {
+        const data: QuizQuestion = {
+          id: editingItem?.id || 'q-' + Date.now(),
+          question: f.get('question') as string,
+          options: [
+            f.get('opt0') as string,
+            f.get('opt1') as string,
+            f.get('opt2') as string,
+            f.get('opt3') as string
+          ],
+          correctAnswer: parseInt(f.get('correctAnswer') as string),
+          explanation: f.get('explanation') as string
+        };
+        await dataService.saveQuizQuestion(data);
       }
 
       await loadAllData();
@@ -194,7 +225,8 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
           { id: 'courses', icon: BookOpen, label: 'Courses' },
           { id: 'lessons', icon: List, label: 'Lessons' },
           { id: 'books', icon: BookIcon, label: 'Books' },
-          { id: 'enrollments', icon: Wallet, label: 'Payments' },
+          { id: 'enrollments', icon: Wallet, label: 'Course Payments' },
+          { id: 'orders', icon: ShoppingBag, label: 'Book Orders' },
           { id: 'blog', icon: FilePlus, label: 'Blog' },
           { id: 'quiz', icon: Sparkles, label: 'Quiz' }
         ].map(item => (
@@ -203,7 +235,7 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
           </button>
         ))}
         <div className="mt-auto">
-          <button onClick={() => window.location.href = '#/'} className="w-full flex items-center gap-4 px-4 py-3 text-red-500 font-bold text-xs hover:bg-red-50 rounded-xl transition-all">
+          <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 py-3 text-red-500 font-bold text-xs hover:bg-red-50 rounded-xl transition-all">
             <LogOut className="w-5 h-5" /> Logout
           </button>
         </div>
@@ -236,7 +268,8 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
             <Stat icon={BookOpen} label="Courses" value={localCourses.length} />
             <Stat icon={List} label="Lessons" value={localLessons.length} />
             <Stat icon={BookIcon} label="Books" value={localBooks.length} />
-            <Stat icon={Wallet} label="Payments" value={localEnrollments.length} />
+            <Stat icon={Wallet} label="Course Sales" value={localEnrollments.length} />
+            <Stat icon={ShoppingBag} label="Book Sales" value={localBookOrders.length} />
           </div>
         )}
 
@@ -289,7 +322,44 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
           </div>
         )}
 
-        {activeTab !== 'overview' && activeTab !== 'enrollments' && (
+        {activeTab === 'orders' && (
+          <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+             <table className="w-full text-left">
+                <thead className="bg-zinc-50 dark:bg-zinc-800 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                 <tr>
+                   <th className="px-8 py-5">Customer</th>
+                   <th className="px-8 py-5">Items</th>
+                   <th className="px-8 py-5">Amount</th>
+                   <th className="px-8 py-5">TxID</th>
+                   <th className="px-8 py-5">Status</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                 {localBookOrders.map(o => (
+                   <tr key={o.id} className="text-sm">
+                     <td className="px-8 py-5 font-bold">{o.userName}</td>
+                     <td className="px-8 py-5 text-xs text-zinc-500">{o.items.map(i => i.title).join(', ')}</td>
+                     <td className="px-8 py-5 font-bold">৳{o.totalAmount}</td>
+                     <td className="px-8 py-5">
+                       <code className="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-[10px] font-bold text-[#C1121F]">{o.transactionId}</code>
+                     </td>
+                     <td className="px-8 py-5">
+                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                         o.status === 'approved' ? 'bg-green-100 text-green-700' : 
+                         o.status === 'rejected' ? 'bg-red-100 text-red-700' : 
+                         'bg-yellow-100 text-yellow-700'
+                       }`}>
+                         {o.status}
+                       </span>
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
+             </table>
+          </div>
+        )}
+
+        {activeTab !== 'overview' && activeTab !== 'enrollments' && activeTab !== 'orders' && (
           <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
             <table className="w-full text-left">
               <thead className="bg-zinc-50 dark:bg-zinc-800 text-[10px] font-black uppercase tracking-widest text-zinc-500">
@@ -397,6 +467,27 @@ const AdminDashboard: React.FC<Props> = ({ lang }) => {
                       <Textarea name="content_en" label="Full Content (EN)" val={editingItem?.content?.EN} />
                       <Textarea name="content_bn" label="Full Content (BN)" val={editingItem?.content?.BN} />
                     </div>
+                  </>
+                )}
+                {activeTab === 'quiz' && (
+                  <>
+                    <Input name="question" label="Question" val={editingItem?.question} />
+                    <div className="grid grid-cols-2 gap-6">
+                      <Input name="opt0" label="Option 1" val={editingItem?.options?.[0]} />
+                      <Input name="opt1" label="Option 2" val={editingItem?.options?.[1]} />
+                      <Input name="opt2" label="Option 3" val={editingItem?.options?.[2]} />
+                      <Input name="opt3" label="Option 4" val={editingItem?.options?.[3]} />
+                    </div>
+                    <div className="space-y-1">
+                       <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Correct Answer</label>
+                       <select name="correctAnswer" defaultValue={editingItem?.correctAnswer || 0} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold">
+                          <option value="0">Option 1</option>
+                          <option value="1">Option 2</option>
+                          <option value="2">Option 3</option>
+                          <option value="3">Option 4</option>
+                       </select>
+                    </div>
+                    <Textarea name="explanation" label="Explanation (Bangla)" val={editingItem?.explanation} />
                   </>
                 )}
                  <div className="flex justify-end gap-4 pt-6">

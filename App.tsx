@@ -33,6 +33,10 @@ import ProfilePage from './pages/ProfilePage';
 import AIChatbot from './components/AIChatbot';
 import CustomCursor from './components/CustomCursor';
 
+import { auth } from './services/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { dataService } from './services/dataService';
+
 const ScrollToTop = ({ closeMenu }: { closeMenu: () => void }) => {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -54,6 +58,28 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('huayu_user');
     return saved ? JSON.parse(saved) : null;
   });
+
+  // Sync with Firebase Auth
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in, fetch profile from Supabase if not already in state
+        if (!currentUser || currentUser.id !== firebaseUser.uid) {
+          const profile = await dataService.getUserById(firebaseUser.uid);
+          if (profile) {
+            setCurrentUser(profile);
+            localStorage.setItem('huayu_user', JSON.stringify(profile));
+          }
+        }
+      } else {
+        // User is signed out
+        setCurrentUser(null);
+        localStorage.removeItem('huayu_user');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [currentUser]);
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -86,11 +112,16 @@ const App: React.FC = () => {
     setIsMobileMenuOpen(false);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('huayu_user');
-    setCurrentUser(null);
-    setIsDropdownOpen(false);
-    setIsMobileMenuOpen(false);
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      localStorage.removeItem('huayu_user');
+      setCurrentUser(null);
+      setIsDropdownOpen(false);
+      setIsMobileMenuOpen(false);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   useEffect(() => {
@@ -275,7 +306,7 @@ const App: React.FC = () => {
             <Route path="/quiz" element={<QuizPage lang={lang} user={currentUser} />} />
             <Route path="/profile" element={<ProfilePage lang={lang} user={currentUser} setUser={setCurrentUser} />} />
             <Route path="/dashboard" element={currentUser ? <DashboardPage lang={lang} user={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/admin/*" element={currentUser?.isAdmin ? <AdminDashboard lang={lang} /> : <Navigate to="/admin/login" />} />
+            <Route path="/admin/*" element={currentUser?.isAdmin ? <AdminDashboard lang={lang} setUser={setCurrentUser} /> : <Navigate to="/admin/login" />} />
           </Routes>
         </main>
 
