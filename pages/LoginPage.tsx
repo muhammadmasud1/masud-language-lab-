@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import { motion as m } from 'framer-motion';
 const motion = m as any;
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, Chrome } from 'lucide-react';
 import { Language, User } from '../types';
 import { dataService } from '../services/dataService';
 
 import { auth } from '../services/firebase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 
 interface Props { 
   lang: Language;
@@ -21,6 +21,26 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      setError(lang === 'EN' ? 'Please enter your email first.' : 'দয়া করে আগে আপনার ইমেইল দিন।');
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      await sendPasswordResetEmail(auth, formData.email);
+      setSuccessMsg(lang === 'EN' ? 'Password reset link sent to your email!' : 'আপনার ইমেইলে পাসওয়ার্ড রিসেট লিঙ্ক পাঠানো হয়েছে!');
+      setTimeout(() => setSuccessMsg(''), 5000);
+    } catch (err: any) {
+      console.error("Reset Email Error:", err);
+      setError(lang === 'EN' ? `Error: ${err.message}` : `সমস্যা: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setError('');
@@ -151,6 +171,17 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
           </motion.div>
         )}
 
+        {successMsg && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="mb-10 p-5 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/40 text-green-600 rounded-2xl flex items-center gap-4 text-sm font-bold"
+          >
+            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">✓</div>
+            {successMsg}
+          </motion.div>
+        )}
+
         <form onSubmit={handleLogin} className="space-y-8">
           <div className="space-y-3">
             <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">{lang === 'EN' ? 'Gmail Address' : 'জিমেইল ঠিকানা'}</label>
@@ -168,7 +199,16 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
           </div>
 
           <div className="space-y-3">
-            <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">{lang === 'EN' ? 'Security Key' : 'পাসওয়ার্ড'}</label>
+            <div className="flex justify-between items-center ml-1">
+              <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{lang === 'EN' ? 'Security Key' : 'পাসওয়ার্ড'}</label>
+              <button 
+                type="button" 
+                onClick={handleForgotPassword}
+                className="text-[10px] font-black text-[#C1121F] uppercase tracking-widest hover:underline"
+              >
+                {lang === 'EN' ? 'Forgot Key?' : 'পাসওয়ার্ড ভুলে গেছেন?'}
+              </button>
+            </div>
             <div className="relative group">
               <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-[#C1121F] transition-colors" />
               <input 
