@@ -67,8 +67,12 @@ const App: React.FC = () => {
         if (!currentUser || currentUser.id !== firebaseUser.uid) {
           const profile = await dataService.getUserById(firebaseUser.uid);
           if (profile) {
-            setCurrentUser(profile);
-            localStorage.setItem('huayu_user', JSON.stringify(profile));
+            const userWithProgress = {
+              ...profile,
+              completedLessons: profile.completedLessons || []
+            };
+            setCurrentUser(userWithProgress);
+            localStorage.setItem('huayu_user', JSON.stringify(userWithProgress));
           }
         }
       } else {
@@ -302,7 +306,7 @@ const App: React.FC = () => {
             <Route path="/register" element={<RegisterPage lang={lang} setUser={setCurrentUser} />} />
             <Route path="/checkout/:courseId" element={<CheckoutPage lang={lang} user={currentUser} />} />
             <Route path="/book-checkout" element={<BookCheckoutPage lang={lang} user={currentUser} />} />
-            <Route path="/lesson/:courseId" element={currentUser ? <LessonPage lang={lang} user={currentUser} /> : <Navigate to="/login" />} />
+            <Route path="/lesson/:courseId" element={currentUser ? <LessonPage lang={lang} user={currentUser} setUser={setCurrentUser} /> : <Navigate to="/login" />} />
             <Route path="/quiz" element={<QuizPage lang={lang} user={currentUser} />} />
             <Route path="/profile" element={<ProfilePage lang={lang} user={currentUser} setUser={setCurrentUser} />} />
             <Route path="/dashboard" element={currentUser ? <DashboardPage lang={lang} user={currentUser} /> : <Navigate to="/login" />} />

@@ -5,7 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion as m, AnimatePresence } from 'framer-motion';
 const motion = m as any;
 import { 
-  Play, ChevronRight, ArrowLeft, Video, 
+  Play, ChevronRight, ChevronLeft, ArrowLeft, Video, 
   Lock, BookOpen, Clock, CheckCircle2, Volume2, Maximize2, ShieldAlert
 } from 'lucide-react';
 import { Language, User, Lesson, Course, Enrollment } from '../types';
@@ -15,9 +15,10 @@ import { getYouTubeEmbedUrl } from '../utils/youtube';
 interface Props {
   lang: Language;
   user: User;
+  setUser: (user: User) => void;
 }
 
-const LessonPage: React.FC<Props> = ({ lang, user }) => {
+const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   
@@ -26,6 +27,25 @@ const LessonPage: React.FC<Props> = ({ lang, user }) => {
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const handleLessonComplete = async (lessonId: string) => {
+    if (user.completedLessons.includes(lessonId)) return;
+
+    const updatedCompletedLessons = [...user.completedLessons, lessonId];
+    const updatedUser = { ...user, completedLessons: updatedCompletedLessons };
+    
+    const success = await dataService.updateUser(user.id, { completedLessons: updatedCompletedLessons });
+    if (success) {
+      setUser(updatedUser);
+      localStorage.setItem('huayu_user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const currentIndex = lessons.findIndex(l => l.id === currentLesson?.id);
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < lessons.length - 1;
+  const handlePrev = () => { if (hasPrev) setCurrentLesson(lessons[currentIndex - 1]); };
+  const handleNext = () => { if (hasNext) setCurrentLesson(lessons[currentIndex + 1]); };
 
   useEffect(() => {
     const loadLessonData = async () => {
@@ -151,6 +171,37 @@ const LessonPage: React.FC<Props> = ({ lang, user }) => {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 ></iframe>
+              </div>
+
+              <div className="flex justify-between items-center mb-12">
+                <button 
+                  onClick={handlePrev}
+                  disabled={!hasPrev}
+                  className="px-6 py-3 bg-zinc-200 dark:bg-zinc-800 rounded-xl font-bold text-sm disabled:opacity-50 flex items-center gap-2 hover:bg-zinc-300 transition-all"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Previous
+                </button>
+                <button 
+                  onClick={() => handleLessonComplete(currentLesson.id)}
+                  className={`px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all flex items-center gap-3 ${
+                    user.completedLessons.includes(currentLesson.id) 
+                    ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' 
+                    : 'bg-zinc-900 text-white hover:bg-[#C1121F] shadow-xl shadow-zinc-900/20'
+                  }`}
+                >
+                  {user.completedLessons.includes(currentLesson.id) ? (
+                    <><CheckCircle2 className="w-5 h-5" /> Completed</>
+                  ) : (
+                    'Mark as Completed'
+                  )}
+                </button>
+                <button
+                  onClick={handleNext}
+                  disabled={!hasNext}
+                  className="px-6 py-3 bg-zinc-200 dark:bg-zinc-800 rounded-xl font-bold text-sm disabled:opacity-50 flex items-center gap-2 hover:bg-zinc-300 transition-all"
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
 
               <div className="bg-white dark:bg-zinc-900 p-12 rounded-[3.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden">
