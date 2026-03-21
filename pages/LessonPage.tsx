@@ -94,6 +94,49 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
     loadLessonData();
   }, [courseId, user.id, navigate]);
 
+  useEffect(() => {
+    if (!currentLesson) return;
+
+    // Load YouTube API script
+    if (!(window as any).YT) {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    }
+
+    const videoId = getYouTubeEmbedUrl(currentLesson.videoUrl).split('/').pop();
+
+    (window as any).onYouTubeIframeAPIReady = () => {
+      (window as any).player = new (window as any).YT.Player('youtube-player', {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          'playsinline': 1
+        }
+      });
+    };
+
+    // If API is already loaded, initialize player directly
+    if ((window as any).YT && (window as any).YT.Player) {
+      (window as any).player = new (window as any).YT.Player('youtube-player', {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          'playsinline': 1
+        }
+      });
+    }
+
+    return () => {
+      if ((window as any).player) {
+        (window as any).player.destroy();
+      }
+    };
+  }, [currentLesson]);
+
   if (loading) return (
     <div className="h-[80vh] flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-[#C1121F]/20 border-t-[#C1121F] rounded-full animate-spin"></div>
@@ -163,14 +206,8 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
             >
               <h1 className="text-4xl font-black mb-10 tracking-tight text-zinc-900 dark:text-white leading-tight">{currentLesson.title}</h1>
               
-              <div className="aspect-video w-full rounded-[3rem] overflow-hidden bg-black shadow-2xl border-4 border-white dark:border-zinc-800 mb-12 relative group">
-                <iframe 
-                  src={getYouTubeEmbedUrl(currentLesson.videoUrl)} 
-                  className="w-full h-full" 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
+              <div className="aspect-video w-full rounded-[3rem] overflow-hidden bg-black shadow-2xl border-4 border-white dark:border-zinc-800 mb-12 relative group" id="youtube-player-container">
+                <div id="youtube-player" className="w-full h-full"></div>
               </div>
 
               <div className="flex justify-between items-center mb-12">
@@ -181,6 +218,37 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
                 >
                   <ChevronLeft className="w-4 h-4" /> Previous
                 </button>
+                
+                <div className="flex items-center gap-2">
+                  <select 
+                    onChange={(e) => {
+                      const player = (window as any).player;
+                      if (player) player.setPlaybackRate(parseFloat(e.target.value));
+                    }}
+                    className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 rounded-xl font-bold text-sm"
+                  >
+                    <option value="0.5">0.5x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                  </select>
+                  <button 
+                    onClick={() => {
+                      const player = (window as any).player;
+                      if (player) {
+                        const iframe = player.getIframe();
+                        if (iframe.requestFullscreen) iframe.requestFullscreen();
+                        else if (iframe.mozRequestFullScreen) iframe.mozRequestFullScreen();
+                        else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+                        else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
+                      }
+                    }}
+                    className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 rounded-xl font-bold text-sm"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
+                </div>
+
                 <button 
                   onClick={() => handleLessonComplete(currentLesson.id)}
                   className={`px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all flex items-center gap-3 ${
