@@ -14,6 +14,7 @@ export interface User {
   purchasedBooks: string[];
   completedLessons: string[]; // Lesson IDs
   lessonNotes?: { [lessonId: string]: string };
+  lastViewedLessons?: { [courseId: string]: string }; // courseId -> lessonId
 }
 
 export interface QuizQuestion {

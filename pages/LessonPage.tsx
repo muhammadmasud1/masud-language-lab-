@@ -105,7 +105,9 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
         
         setLessons(publishedLessons);
         if (publishedLessons.length > 0) {
-          setCurrentLesson(publishedLessons[0]);
+          const lastViewedId = user.lastViewedLessons?.[courseId!];
+          const lastViewedLesson = publishedLessons.find(l => l.id === lastViewedId);
+          setCurrentLesson(lastViewedLesson || publishedLessons[0]);
         }
       } catch (err) {
         console.error("Error loading lesson data:", err);
@@ -116,6 +118,27 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
 
     loadLessonData();
   }, [courseId, user.id, navigate]);
+
+  // Save progress (last viewed lesson)
+  useEffect(() => {
+    if (currentLesson && courseId && user.id) {
+      const lastViewedId = user.lastViewedLessons?.[courseId];
+      if (lastViewedId !== currentLesson.id) {
+        const updatedLastViewed = {
+          ...(user.lastViewedLessons || {}),
+          [courseId]: currentLesson.id
+        };
+        const updatedUser = { ...user, lastViewedLessons: updatedLastViewed };
+        
+        dataService.updateUser(user.id, { lastViewedLessons: updatedLastViewed }).then(success => {
+          if (success) {
+            setUser(updatedUser);
+            localStorage.setItem('huayu_user', JSON.stringify(updatedUser));
+          }
+        });
+      }
+    }
+  }, [currentLesson?.id, courseId, user.id, user.lastViewedLessons]);
 
   useEffect(() => {
     if (!currentLesson) return;
