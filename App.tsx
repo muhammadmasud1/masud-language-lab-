@@ -67,10 +67,13 @@ const App: React.FC = () => {
         if (!currentUser || currentUser.id !== firebaseUser.uid) {
           const profile = await dataService.getUserById(firebaseUser.uid);
           if (profile) {
-            const userWithProgress = {
+            const userWithProgress: User = {
               ...profile,
+              enrolledCourses: profile.enrolledCourses || [],
+              purchasedBooks: profile.purchasedBooks || [],
               completedLessons: profile.completedLessons || [],
-              lessonNotes: profile.lessonNotes || {}
+              lessonNotes: profile.lessonNotes || {},
+              lastViewedLessons: profile.lastViewedLessons || {}
             };
             setCurrentUser(userWithProgress);
             localStorage.setItem('huayu_user', JSON.stringify(userWithProgress));

@@ -43,7 +43,7 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
       ...(user.lessonNotes || {}),
       [currentLesson.id]: notes
     };
-    const updatedUser = { ...user, lessonNotes: updatedLessonNotes };
+    const updatedUser: User = { ...user, lessonNotes: updatedLessonNotes };
     const success = await dataService.updateUser(user.id, { lessonNotes: updatedLessonNotes });
     if (success) {
       setUser(updatedUser);
@@ -52,10 +52,11 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
   };
 
   const handleLessonComplete = async (lessonId: string) => {
-    if (user.completedLessons.includes(lessonId)) return;
+    const completed = user.completedLessons || [];
+    if (completed.includes(lessonId)) return;
 
-    const updatedCompletedLessons = [...user.completedLessons, lessonId];
-    const updatedUser = { ...user, completedLessons: updatedCompletedLessons };
+    const updatedCompletedLessons = [...completed, lessonId];
+    const updatedUser: User = { ...user, completedLessons: updatedCompletedLessons };
     
     const success = await dataService.updateUser(user.id, { completedLessons: updatedCompletedLessons });
     if (success) {
@@ -212,7 +213,7 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
       <aside className="w-full lg:w-96 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 h-auto lg:h-[calc(100vh-6rem)] sticky top-24 flex flex-col z-20 shadow-sm">
         <div className="p-8 border-b border-zinc-100 dark:border-zinc-800">
           <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-[#C1121F] font-black text-[10px] uppercase tracking-widest mb-6 hover:gap-3 transition-all"><ArrowLeft className="w-4 h-4" /> Back to Portal</button>
-          <h2 className="text-xl font-black leading-tight mb-4">{course?.title[lang]}</h2>
+          <h2 className="text-xl font-black leading-tight mb-4">{course?.title?.[lang]}</h2>
           <div className="px-4 py-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-100 dark:border-zinc-700 text-[10px] font-black uppercase tracking-widest text-zinc-500">{lessons.length} Units Available</div>
         </div>
         <div className="flex-grow overflow-y-auto p-6 space-y-3">
@@ -283,6 +284,7 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
                     </a>
                   )}
                   <select 
+                    defaultValue="1"
                     onChange={(e) => {
                       const player = (window as any).player;
                       if (player) player.setPlaybackRate(parseFloat(e.target.value));
@@ -290,7 +292,7 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
                     className="px-4 py-2 bg-zinc-200 dark:bg-zinc-800 rounded-xl font-bold text-sm"
                   >
                     <option value="0.5">0.5x</option>
-                    <option value="1" selected>1x</option>
+                    <option value="1">1x</option>
                     <option value="1.5">1.5x</option>
                     <option value="2">2x</option>
                   </select>
@@ -314,12 +316,12 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
                 <button 
                   onClick={() => handleLessonComplete(currentLesson.id)}
                   className={`px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all flex items-center gap-3 ${
-                    user.completedLessons.includes(currentLesson.id) 
+                    (user.completedLessons || []).includes(currentLesson.id) 
                     ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' 
                     : 'bg-zinc-900 text-white hover:bg-[#C1121F] shadow-xl shadow-zinc-900/20'
                   }`}
                 >
-                  {user.completedLessons.includes(currentLesson.id) ? (
+                  {(user.completedLessons || []).includes(currentLesson.id) ? (
                     <><CheckCircle2 className="w-5 h-5" /> Completed</>
                   ) : (
                     'Mark as Completed'
