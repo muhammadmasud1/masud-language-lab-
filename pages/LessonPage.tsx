@@ -6,7 +6,7 @@ import { motion as m, AnimatePresence } from 'framer-motion';
 const motion = m as any;
 import { 
   Play, ChevronRight, ChevronLeft, ArrowLeft, Video, 
-  Lock, BookOpen, Clock, CheckCircle2, Volume2, Maximize2, ShieldAlert, ChevronDown
+  Lock, BookOpen, Clock, CheckCircle2, Volume2, Maximize2, ShieldAlert, ChevronDown, ExternalLink
 } from 'lucide-react';
 import { Language, User, Lesson, Course, Enrollment } from '../types';
 import { dataService } from '../services/dataService';
@@ -136,7 +136,10 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
         width: '100%',
         videoId: videoId,
         playerVars: {
-          'playsinline': 1
+          'playsinline': 1,
+          'rel': 0,
+          'controls': 1,
+          'modestbranding': 1
         }
       });
     };
@@ -148,7 +151,10 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
         width: '100%',
         videoId: videoId,
         playerVars: {
-          'playsinline': 1
+          'playsinline': 1,
+          'rel': 0,
+          'controls': 1,
+          'modestbranding': 1
         }
       });
     }
@@ -243,6 +249,16 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
                 </button>
                 
                 <div className="flex items-center gap-2">
+                  {currentLesson.driveUrl && (
+                    <a 
+                      href={currentLesson.driveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20"
+                    >
+                      <ExternalLink className="w-4 h-4" /> Drive Video Access
+                    </a>
+                  )}
                   <select 
                     onChange={(e) => {
                       const player = (window as any).player;

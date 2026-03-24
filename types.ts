@@ -69,6 +69,7 @@ export interface Lesson {
   courseId: string;
   title: string;
   videoUrl: string;
+  driveUrl?: string;
   order: number;
   status: 'published' | 'draft';
 }

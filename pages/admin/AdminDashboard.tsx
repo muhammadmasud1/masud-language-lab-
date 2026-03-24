@@ -149,6 +149,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
           courseId: f.get('courseId') as string,
           title: f.get('title') as string,
           videoUrl: f.get('videoUrl') as string,
+          driveUrl: f.get('driveUrl') as string || undefined,
           order: parseInt(f.get('order') as string),
           status: 'published'
         };
@@ -425,6 +426,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                      </div>
                      <Input name="title" label="Lesson Title" val={editingItem?.title} />
                      <Input name="videoUrl" label="Video URL" val={editingItem?.videoUrl} />
+                     <Input name="driveUrl" label="Drive Video URL (Optional)" val={editingItem?.driveUrl} />
                      <Input name="order" label="Order" type="number" val={editingItem?.order} />
                    </>
                  )}
