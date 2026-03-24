@@ -8,22 +8,26 @@ export const dataService = {
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('id', id)
-      .single();
+      .eq('id', id);
     
-    if (error) return null;
-    return data as User;
+    if (error) {
+      console.error("Supabase GetUserById Error:", error.message);
+      return null;
+    }
+    return (data && data.length > 0) ? data[0] as User : null;
   },
 
   getUserByEmail: async (email: string): Promise<User | null> => {
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('email', email.toLowerCase())
-      .single();
+      .eq('email', email.toLowerCase());
     
-    if (error) return null;
-    return data as User;
+    if (error) {
+      console.error("Supabase GetUserByEmail Error:", error.message);
+      return null;
+    }
+    return (data && data.length > 0) ? data[0] as User : null;
   },
 
   registerUser: async (user: User) => {
@@ -32,7 +36,7 @@ export const dataService = {
       .insert([user]);
     
     if (error) {
-      console.error("Supabase Register Error:", error);
+      console.error("Supabase Register Error:", error.message || JSON.stringify(error));
       return { success: false, error: error.message };
     }
     return { success: true };

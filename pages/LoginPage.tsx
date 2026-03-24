@@ -8,7 +8,7 @@ import { Language, User } from '../types';
 import { dataService } from '../services/dataService';
 
 import { auth } from '../services/firebase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, signOut } from 'firebase/auth';
 
 interface Props { 
   lang: Language;
@@ -120,6 +120,16 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
       const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
       const firebaseUser = userCredential.user;
 
+      // Check if email is verified
+      if (!firebaseUser.emailVerified) {
+        await signOut(auth);
+        setError(lang === 'EN' 
+          ? 'Please verify your email before logging in. Check your Gmail inbox for the verification link.' 
+          : 'লগইন করার আগে দয়া করে আপনার ইমেইল ভেরিফাই করুন। আপনার জিমেইল ইনবক্স চেক করুন।');
+        setIsLoading(false);
+        return;
+      }
+
       // Fetch additional user data from Supabase
       const foundUser = await dataService.getUserById(firebaseUser.uid);
 
@@ -134,6 +144,7 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
         }
       } else {
         setError(lang === 'EN' ? 'User profile not found in database.' : 'ডাটাবেসে ইউজার প্রোফাইল পাওয়া যায়নি।');
+        await signOut(auth);
       }
     } catch (err: any) {
       console.error("Login Error:", err);

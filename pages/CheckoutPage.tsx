@@ -11,7 +11,6 @@ import { Language, User, Course, Enrollment } from '../types';
 import { COURSES, PAYMENT_INFO } from '../constants';
 import { notifyAdminOfPayment } from '../services/geminiService';
 import { dataService } from '../services/dataService';
-import BkashPayment from '../components/BkashPayment';
 
 interface Props {
   lang: Language;
@@ -22,7 +21,7 @@ const CheckoutPage: React.FC<Props> = ({ lang, user }) => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const [course, setCourse] = useState<Course | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'bKash' | 'Nagad' | 'Rocket' | 'bKashGateway'>('bKash');
+  const [paymentMethod, setPaymentMethod] = useState<'bKash' | 'Nagad' | 'Rocket'>('bKash');
   const [senderNumber, setSenderNumber] = useState('');
   const [transactionId, setTransactionId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -151,8 +150,8 @@ const CheckoutPage: React.FC<Props> = ({ lang, user }) => {
             </h3>
 
             {/* Payment Method Selector */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-              {(['bKash', 'Nagad', 'Rocket', 'bKashGateway'] as const).map(method => (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12">
+              {(['bKash', 'Nagad', 'Rocket'] as const).map(method => (
                 <button
                   key={method}
                   onClick={() => setPaymentMethod(method)}
@@ -165,39 +164,30 @@ const CheckoutPage: React.FC<Props> = ({ lang, user }) => {
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg ${
                     method === 'bKash' ? 'bg-pink-100 text-pink-600' :
                     method === 'Nagad' ? 'bg-orange-100 text-orange-600' :
-                    method === 'bKashGateway' ? 'bg-pink-600 text-white' :
                     'bg-indigo-100 text-indigo-600'
                   }`}>
                     {method.charAt(0)}
                   </div>
-                  <span className="font-bold text-sm">{method === 'bKashGateway' ? 'bKash Gateway' : method}</span>
+                  <span className="font-bold text-sm">{method}</span>
                 </button>
               ))}
             </div>
 
-            {/* Payment Instructions / Gateway */}
-            {paymentMethod === 'bKashGateway' ? (
-                <div className="bg-white p-8 rounded-3xl border border-zinc-200 text-center mb-12">
-                    <h4 className="text-xl font-bold mb-4">Pay with bKash Gateway</h4>
-                    <BkashPayment amount={course.price} orderId={courseId} />
-                </div>
-            ) : (
-                <>
-                    {/* Payment Instructions */}
-                    <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-3xl border border-dashed border-zinc-300 dark:border-zinc-700 mb-12 text-center">
-                      <p className="text-lg font-bold mb-2">
-                        নির্ধারিত নাম্বারে টাকা পাঠিয়ে নিচে প্রয়োজনীয় তথ্য দিন
-                      </p>
-                      <div className="text-3xl font-black text-[#C1121F] tracking-widest chinese-font mb-4">
-                        {PAYMENT_INFO[paymentMethod]}
-                      </div>
-                      <p className="text-xs text-zinc-500 uppercase font-bold">
-                        Personal Number • Cash Out/Send Money
-                      </p>
-                    </div>
+            {/* Payment Instructions */}
+            <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-3xl border border-dashed border-zinc-300 dark:border-zinc-700 mb-12 text-center">
+              <p className="text-lg font-bold mb-2">
+                নির্ধারিত নাম্বারে টাকা পাঠিয়ে নিচে প্রয়োজনীয় তথ্য দিন
+              </p>
+              <div className="text-3xl font-black text-[#C1121F] tracking-widest chinese-font mb-4">
+                {PAYMENT_INFO[paymentMethod as keyof typeof PAYMENT_INFO]}
+              </div>
+              <p className="text-xs text-zinc-500 uppercase font-bold">
+                Personal Number • Cash Out/Send Money
+              </p>
+            </div>
 
-                    {/* Submission Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Submission Form */}
+            <form onSubmit={handleSubmit} className="space-y-6">
                       {/* ... existing form fields ... */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -264,8 +254,6 @@ const CheckoutPage: React.FC<Props> = ({ lang, user }) => {
                         )}
                       </button>
                     </form>
-                </>
-            )}
           </div>
 
           <div className="flex items-center gap-3 text-zinc-400 text-sm justify-center">

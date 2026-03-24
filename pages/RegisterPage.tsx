@@ -8,7 +8,7 @@ import { Language, User } from '../types';
 import { dataService } from '../services/dataService';
 
 import { auth } from '../services/firebase';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification, signOut } from 'firebase/auth';
 
 interface Props { 
   lang: Language;
@@ -22,16 +22,21 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
     name: '', email: '', phone: '', password: '', goal: 'Study'
   });
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
     setError('');
+    setSuccessMsg('');
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
     
     try {
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
+      
+      // Google users are usually verified by default, but we can check
+      // For Google login, we don't force email verification redirect usually
       
       // Check if user exists in Supabase by ID
       let foundUser = await dataService.getUserById(firebaseUser.uid);
@@ -90,12 +95,16 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMsg('');
     setIsLoading(true);
 
     try {
       // Firebase Registration
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const firebaseUser = userCredential.user;
+
+      // Send Verification Email
+      await sendEmailVerification(firebaseUser);
 
       const newUser: User = {
         id: firebaseUser.uid, // Use Firebase UID
@@ -114,9 +123,15 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
       const result = await dataService.registerUser(newUser);
       
       if (result.success) {
-        localStorage.setItem('huayu_user', JSON.stringify(newUser));
-        setUser(newUser);
-        navigate('/dashboard');
+        // Sign out user immediately after registration so they must verify and login
+        await signOut(auth);
+        setSuccessMsg(lang === 'EN' 
+          ? 'Registration successful! A verification email has been sent to your Gmail. Please verify it before logging in.' 
+          : 'নিবন্ধন সফল হয়েছে! আপনার জিমেইলে একটি ভেরিফিকেশন লিঙ্ক পাঠানো হয়েছে। লগইন করার আগে দয়া করে সেটি ভেরিফাই করুন।');
+        
+        // Reset form and go back to step 1 or show success state
+        setFormData({ name: '', email: '', phone: '', password: '', goal: 'Study' });
+        setStep(1);
       } else {
         setError(lang === 'EN' ? `Database Error: ${result.error}` : `ডাটাবেস সমস্যা: ${result.error}`);
       }
@@ -167,6 +182,17 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
           >
             <AlertCircle className="w-6 h-6 shrink-0" />
             {error}
+          </motion.div>
+        )}
+
+        {successMsg && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            className="mb-10 p-5 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/40 text-green-600 rounded-2xl flex items-center gap-4 text-sm font-bold"
+          >
+            <CheckCircle className="w-6 h-6 shrink-0" />
+            {successMsg}
           </motion.div>
         )}
 

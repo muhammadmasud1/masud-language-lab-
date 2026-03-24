@@ -38,17 +38,6 @@ const writeDB = (data) => fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2
 
 // --- API ENDPOINTS ---
 
-// bKash API Routes
-app.post('/api/bkash/create-payment', async (req, res) => {
-    try {
-        // Implement bKash Create Payment API call here using axios
-        // Use process.env.BKASH_APP_KEY, etc.
-        res.json({ success: true, message: 'Payment created' });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to create payment' });
-    }
-});
-
 // Generic Get All
 app.get('/api/:module', (req, res) => {
     const data = readDB();

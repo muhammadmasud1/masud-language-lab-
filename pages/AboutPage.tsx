@@ -3,7 +3,7 @@ import React from 'react';
 // Use a cast to any to bypass broken type definitions for motion components in this environment
 import { motion as m } from 'framer-motion';
 const motion = m as any;
-import { Award, Book, Heart, Search } from 'lucide-react';
+import { Award, Book, Heart, Search, ShieldCheck } from 'lucide-react';
 import { Language } from '../types';
 
 interface Props { lang: Language; }
@@ -65,6 +65,38 @@ const AboutPage: React.FC<Props> = ({ lang }) => {
           </div>
         </div>
       </div>
+
+      <section className="py-24 bg-zinc-50 dark:bg-zinc-900/50 rounded-[4rem] border border-zinc-200 dark:border-zinc-800 my-24">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl font-black mb-12 text-center tracking-tight">
+            {lang === 'EN' ? 'Certifications & Affiliations' : 'সার্টিফিকেশন এবং অধিভুক্তি'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-8 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 text-left shadow-sm">
+              <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center text-[#C1121F] mb-6">
+                <Award className="w-6 h-6" />
+              </div>
+              <h4 className="text-xl font-bold mb-2">Confucius Institute</h4>
+              <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+                {lang === 'EN' 
+                  ? 'Affiliated with the Confucius Institute at the University of Dhaka (2025), promoting cultural and linguistic exchange.' 
+                  : 'ঢাকা বিশ্ববিদ্যালয়ের কনফুসিয়াস ইনস্টিটিউটের (২০২৫) সাথে সম্পৃক্ত, যা সাংস্কৃতিক ও ভাষাগত বিনিময়ে ভূমিকা রাখছে।'}
+              </p>
+            </div>
+            <div className="p-8 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 text-left shadow-sm">
+              <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center text-[#C1121F] mb-6">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <h4 className="text-xl font-bold mb-2">HSK Certified</h4>
+              <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+                {lang === 'EN' 
+                  ? 'Certified HSK 4 and HSK 6 proficiency, ensuring the highest standards of Mandarin instruction.' 
+                  : 'HSK ৪ এবং HSK ৬ প্রত্যয়িত দক্ষতা, যা মানসম্মত ম্যান্ডারিন শিক্ষার নিশ্চয়তা দেয়।'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="py-24 border-y border-zinc-200 dark:border-zinc-800">
         <h2 className="text-4xl font-black text-center mb-16 text-zinc-900 dark:text-white tracking-tight">
