@@ -22,12 +22,11 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
     name: '', email: '', phone: '', password: '', goal: 'Study'
   });
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
     setError('');
-    setSuccessMsg('');
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
     
@@ -95,7 +94,6 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccessMsg('');
     setIsLoading(true);
 
     try {
@@ -135,11 +133,9 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
       if (result.success) {
         // Sign out user immediately after registration so they must verify and login
         await signOut(auth);
-        setSuccessMsg(lang === 'EN' 
-          ? 'Registration successful! A verification email has been sent to your Gmail. Please verify it before logging in.' 
-          : 'নিবন্ধন সফল হয়েছে! আপনার জিমেইলে একটি ভেরিফিকেশন লিঙ্ক পাঠানো হয়েছে। লগইন করার আগে দয়া করে সেটি ভেরিফাই করুন।');
+        setShowSuccessModal(true);
         
-        // Reset form and go back to step 1 or show success state
+        // Reset form and go back to step 1
         setFormData({ name: '', email: '', phone: '', password: '', goal: 'Study' });
         setStep(1);
       } else {
@@ -202,16 +198,48 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
           </motion.div>
         )}
 
-        {successMsg && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }} 
-            animate={{ opacity: 1, scale: 1 }} 
-            className="mb-10 p-5 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/40 text-green-600 rounded-2xl flex items-center gap-4 text-sm font-bold"
-          >
-            <CheckCircle className="w-6 h-6 shrink-0" />
-            {successMsg}
-          </motion.div>
-        )}
+        {/* Success Modal */}
+        <AnimatePresence>
+          {showSuccessModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="max-w-md w-full bg-white dark:bg-zinc-900 p-10 rounded-[3rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl text-center"
+              >
+                <div className="w-20 h-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center text-green-500 mx-auto mb-8">
+                  <CheckCircle className="w-10 h-10" />
+                </div>
+                <h2 className="text-2xl font-black mb-4 tracking-tight">
+                  {lang === 'EN' ? 'Check Your Gmail!' : 'আপনার জিমেইল চেক করুন!'}
+                </h2>
+                <p className="text-zinc-500 dark:text-zinc-400 font-medium mb-8 leading-relaxed">
+                  {lang === 'EN' 
+                    ? 'Registration successful! A verification link has been sent to your Gmail. Please verify it to access your portal.' 
+                    : 'নিবন্ধন সফল হয়েছে! আপনার জিমেইলে একটি ভেরিফিকেশন লিঙ্ক পাঠানো হয়েছে। পোর্টাল এক্সেস করতে দয়া করে সেটি ভেরিফাই করুন।'}
+                </p>
+                <div className="bg-amber-50 dark:bg-amber-900/20 p-5 rounded-2xl border border-amber-100 dark:border-amber-900/30 mb-8">
+                  <p className="text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center justify-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    {lang === 'EN' 
+                      ? 'Note: If not in Inbox, please check your SPAM folder.' 
+                      : 'নোট: ইনবক্সে না পেলে দয়া করে SPAM ফোল্ডার চেক করুন।'}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    navigate('/login');
+                  }}
+                  className="w-full py-4 bg-[#C1121F] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-500/20"
+                >
+                  {lang === 'EN' ? 'Proceed to Login' : 'লগইন করতে যান'}
+                </button>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         <AnimatePresence mode="wait">
           {step === 1 ? (
