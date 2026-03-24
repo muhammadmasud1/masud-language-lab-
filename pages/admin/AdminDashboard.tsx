@@ -543,27 +543,6 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                     <Textarea name="explanation" label="Explanation (Bangla)" val={editingItem?.explanation} />
                   </>
                 )}
-                {activeTab === 'reviews' && (
-                  <>
-                    <div className="grid grid-cols-2 gap-6">
-                      <Input name="userName" label="Student Name" val={editingItem?.userName} />
-                      <Input name="userRole" label="Student Role/Title" val={editingItem?.userRole} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-6">
-                      <Input name="image" label="Student Image URL" val={editingItem?.image} />
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Rating</label>
-                        <select name="rating" defaultValue={editingItem?.rating || 5} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold">
-                           {[5,4,3,2,1].map(num => <option key={num} value={num}>{num} Stars</option>)}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-6">
-                      <Textarea name="content_en" label="Review Content (EN)" val={editingItem?.content?.EN} />
-                      <Textarea name="content_bn" label="Review Content (BN)" val={editingItem?.content?.BN} />
-                    </div>
-                  </>
-                )}
                  <div className="flex justify-end gap-4 pt-6">
                     <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-4 font-bold text-zinc-400 hover:text-zinc-600 transition-colors">Cancel</button>
                     <button type="submit" className="bg-[#C1121F] text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center gap-3 shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all active:scale-95">
