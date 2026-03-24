@@ -30,6 +30,7 @@ import BookCheckoutPage from './pages/BookCheckoutPage';
 import LessonPage from './pages/LessonPage';
 import QuizPage from './pages/QuizPage';
 import ProfilePage from './pages/ProfilePage';
+import ReviewPage from './pages/ReviewPage';
 import AIChatbot from './components/AIChatbot';
 import CustomCursor from './components/CustomCursor';
 
@@ -312,6 +313,7 @@ const App: React.FC = () => {
             <Route path="/book-checkout" element={<BookCheckoutPage lang={lang} user={currentUser} />} />
             <Route path="/lesson/:courseId" element={currentUser ? <LessonPage lang={lang} user={currentUser} setUser={setCurrentUser} /> : <Navigate to="/login" />} />
             <Route path="/quiz" element={<QuizPage lang={lang} user={currentUser} />} />
+            <Route path="/reviews" element={<ReviewPage lang={lang} />} />
             <Route path="/profile" element={<ProfilePage lang={lang} user={currentUser} setUser={setCurrentUser} />} />
             <Route path="/dashboard" element={currentUser ? <DashboardPage lang={lang} user={currentUser} /> : <Navigate to="/login" />} />
             <Route path="/admin/*" element={currentUser?.isAdmin ? <AdminDashboard lang={lang} setUser={setCurrentUser} /> : <Navigate to="/admin/login" />} />

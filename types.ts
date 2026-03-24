@@ -119,6 +119,17 @@ export interface Testimonial {
   avatar: string;
 }
 
+export interface Review {
+  id: string;
+  userName?: string;
+  userRole?: string;
+  content?: Record<Language, string>;
+  rating?: number;
+  image: string;
+  date?: string;
+  status?: 'published' | 'draft';
+}
+
 export interface PlatformStats {
   totalUsers: number;
   totalCourses: number;

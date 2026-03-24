@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, BookOpen, Plus, LogOut, Edit3, Trash2, 
   Wallet, List, ShoppingBag, Book as BookIcon, Sparkles, FilePlus, Video, X, Save,
-  CheckCircle, AlertCircle, RefreshCcw, Database
+  CheckCircle, AlertCircle, RefreshCcw, Database, MessageSquare, Star
 } from 'lucide-react';
-import { Language, Course, Article, Enrollment, BookOrder, Book, QuizQuestion, Lesson } from '../../types';
+import { Language, Course, Article, Enrollment, BookOrder, Book, QuizQuestion, Lesson, Review } from '../../types';
 import { dataService } from '../../services/dataService';
 
 import { auth } from '../../services/firebase';
@@ -14,7 +14,7 @@ import { signOut } from 'firebase/auth';
 
 interface Props { lang: Language; setUser: (user: any) => void; }
 
-type Tab = 'overview' | 'courses' | 'lessons' | 'enrollments' | 'books' | 'blog' | 'quiz';
+type Tab = 'overview' | 'courses' | 'lessons' | 'enrollments' | 'books' | 'blog' | 'quiz' | 'reviews';
 
 const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
@@ -28,6 +28,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
   const [localEnrollments, setLocalEnrollments] = useState<Enrollment[]>([]);
   const [localBookOrders, setLocalBookOrders] = useState<BookOrder[]>([]);
   const [localQuizQuestions, setLocalQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [localReviews, setLocalReviews] = useState<Review[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -46,14 +47,15 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
   const loadAllData = async () => {
     setIsLoading(true);
     try {
-      const [courses, articles, books, lessons, enrollments, orders, quiz] = await Promise.all([
+      const [courses, articles, books, lessons, enrollments, orders, quiz, reviews] = await Promise.all([
         dataService.getCourses(),
         dataService.getArticles(),
         dataService.getBooks(),
         dataService.getLessons(),
         dataService.getEnrollments(),
         dataService.getBookOrders(),
-        dataService.getQuizQuestions()
+        dataService.getQuizQuestions(),
+        dataService.getReviews()
       ]);
       
       setLocalCourses(courses);
@@ -63,6 +65,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
       setLocalEnrollments(enrollments);
       setLocalBookOrders(orders);
       setLocalQuizQuestions(quiz);
+      setLocalReviews(reviews);
     } catch (err) {
       showStatus('error', 'ডাটা লোড করতে সমস্যা হয়েছে।');
     } finally {
@@ -88,6 +91,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
       if (type === 'books') await dataService.deleteBook(id);
       if (type === 'blog') await dataService.deleteArticle(id);
       if (type === 'quiz') await dataService.deleteQuizQuestion(id);
+      if (type === 'reviews') await dataService.deleteReview(id);
       if (type === 'enrollments') await dataService.deleteEnrollment(id);
       await loadAllData();
       showStatus('success', 'সফলভাবে মুছে ফেলা হয়েছে');
@@ -191,6 +195,21 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
           explanation: f.get('explanation') as string
         };
         await dataService.saveQuizQuestion(data);
+      } else if (activeTab === 'reviews') {
+        const data: Review = {
+          id: editingItem?.id || 'rev-' + Date.now(),
+          userName: (f.get('userName') as string) || undefined,
+          userRole: (f.get('userRole') as string) || undefined,
+          rating: f.get('rating') ? parseInt(f.get('rating') as string) : undefined,
+          content: { 
+            EN: (f.get('content_en') as string) || '', 
+            BN: (f.get('content_bn') as string) || '' 
+          },
+          image: f.get('image') as string,
+          date: (f.get('date') as string) || new Date().toLocaleDateString(),
+          status: (f.get('status') as any) || 'published'
+        };
+        await dataService.saveReview(data);
       }
 
       await loadAllData();
@@ -229,7 +248,8 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
           { id: 'enrollments', icon: Wallet, label: 'Course Payments' },
           { id: 'orders', icon: ShoppingBag, label: 'Book Orders' },
           { id: 'blog', icon: FilePlus, label: 'Blog' },
-          { id: 'quiz', icon: Sparkles, label: 'Quiz' }
+          { id: 'quiz', icon: Sparkles, label: 'Quiz' },
+          { id: 'reviews', icon: MessageSquare, label: 'Reviews' }
         ].map(item => (
           <button key={item.id} onClick={() => setActiveTab(item.id as Tab)} className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl font-bold text-xs transition-all ${activeTab === item.id ? 'bg-[#C1121F] text-white shadow-lg' : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}>
             <item.icon className="w-5 h-5" /> {item.label}
@@ -374,10 +394,11 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                 {(activeTab === 'courses' ? localCourses : 
                   activeTab === 'lessons' ? localLessons : 
                   activeTab === 'books' ? localBooks : 
-                  activeTab === 'blog' ? localArticles : localQuizQuestions).map((item: any) => (
+                  activeTab === 'blog' ? localArticles : 
+                  activeTab === 'reviews' ? localReviews : localQuizQuestions).map((item: any) => (
                   <tr key={item.id} className="text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                    <td className="px-8 py-5 font-bold text-zinc-900 dark:text-zinc-100">{item.title?.EN || item.title || item.question}</td>
-                    <td className="px-8 py-5 text-zinc-400">{item.price ? `৳${item.price}` : (item.courseId || item.category || 'Quiz')}</td>
+                    <td className="px-8 py-5 font-bold text-zinc-900 dark:text-zinc-100">{item.title?.EN || item.title || item.question || item.userName}</td>
+                    <td className="px-8 py-5 text-zinc-400">{item.price ? `৳${item.price}` : (item.courseId || item.category || (item.rating ? `${item.rating} Stars` : 'Quiz'))}</td>
                     <td className="px-8 py-5 text-right space-x-2">
                       <button onClick={() => { setEditingItem(item); setIsModalOpen(true); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit3 className="w-4 h-4" /></button>
                       <button onClick={() => handleDelete(item.id, activeTab)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
@@ -471,6 +492,36 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                     </div>
                   </>
                 )}
+                {activeTab === 'reviews' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                      <Input name="userName" label="Student Name" val={editingItem?.userName} required={false} />
+                      <Input name="userRole" label="Student Role" val={editingItem?.userRole} required={false} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Rating (1-5)</label>
+                        <input name="rating" type="number" min="1" max="5" defaultValue={editingItem?.rating || 5} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Date</label>
+                        <input name="date" type="date" defaultValue={editingItem?.date || new Date().toISOString().split('T')[0]} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <Textarea name="content_en" label="Review Content (EN)" val={editingItem?.content?.EN} required={false} />
+                      <Textarea name="content_bn" label="Review Content (BN)" val={editingItem?.content?.BN} required={false} />
+                    </div>
+                    <Input name="image" label="Student Image URL" val={editingItem?.image} required={true} />
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Status</label>
+                      <select name="status" defaultValue={editingItem?.status || 'published'} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold">
+                        <option value="published">Published</option>
+                        <option value="draft">Draft</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
                 {activeTab === 'quiz' && (
                   <>
                     <Input name="question" label="Question" val={editingItem?.question} />
@@ -490,6 +541,27 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                        </select>
                     </div>
                     <Textarea name="explanation" label="Explanation (Bangla)" val={editingItem?.explanation} />
+                  </>
+                )}
+                {activeTab === 'reviews' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-6">
+                      <Input name="userName" label="Student Name" val={editingItem?.userName} />
+                      <Input name="userRole" label="Student Role/Title" val={editingItem?.userRole} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <Input name="image" label="Student Image URL" val={editingItem?.image} />
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Rating</label>
+                        <select name="rating" defaultValue={editingItem?.rating || 5} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold">
+                           {[5,4,3,2,1].map(num => <option key={num} value={num}>{num} Stars</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <Textarea name="content_en" label="Review Content (EN)" val={editingItem?.content?.EN} />
+                      <Textarea name="content_bn" label="Review Content (BN)" val={editingItem?.content?.BN} />
+                    </div>
                   </>
                 )}
                  <div className="flex justify-end gap-4 pt-6">
@@ -514,17 +586,17 @@ const Stat = ({ icon: Icon, label, value }: any) => (
   </div>
 );
 
-const Input = ({ name, label, val, type = "text" }: any) => (
+const Input = ({ name, label, val, type = "text", required = true }: any) => (
   <div className="space-y-1">
     <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">{label}</label>
-    <input name={name} defaultValue={val} type={type} required className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold shadow-sm transition-all" />
+    <input name={name} defaultValue={val} type={type} required={required} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold shadow-sm transition-all" />
   </div>
 );
 
-const Textarea = ({ name, label, val }: any) => (
+const Textarea = ({ name, label, val, required = true }: any) => (
   <div className="space-y-1">
     <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">{label}</label>
-    <textarea name={name} defaultValue={val} required rows={3} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold resize-none shadow-sm transition-all" />
+    <textarea name={name} defaultValue={val} required={required} rows={3} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold resize-none shadow-sm transition-all" />
   </div>
 );
 

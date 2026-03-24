@@ -1,5 +1,5 @@
 
-import { Course, Book, Article, Lesson, QuizQuestion, Enrollment, BookOrder, User } from '../types';
+import { Course, Book, Article, Lesson, QuizQuestion, Enrollment, BookOrder, User, Review } from '../types';
 import { supabase } from './supabaseClient';
 
 export const dataService = {
@@ -219,6 +219,32 @@ export const dataService = {
     const { error } = await supabase
       .from('book_orders')
       .insert([order]);
+    
+    return !error;
+  },
+
+  // --- Reviews ---
+  getReviews: async (): Promise<Review[]> => {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .order('date', { ascending: false });
+    
+    if (error) return [];
+    return data as Review[];
+  },
+  saveReview: async (review: Review) => {
+    const { error } = await supabase
+      .from('reviews')
+      .upsert([review]);
+    
+    return !error;
+  },
+  deleteReview: async (id: string) => {
+    const { error } = await supabase
+      .from('reviews')
+      .delete()
+      .eq('id', id);
     
     return !error;
   }

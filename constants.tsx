@@ -23,6 +23,7 @@ export const NAV_LINKS: NavLink[] = [
   { path: '/interpreter', label: { EN: 'Interpreter', BN: 'অনুবাদ সেবা' } },
   { path: '/live-lab', label: { EN: 'Live Lab', BN: 'লাইভ ল্যাব' } },
   { path: '/blog', label: { EN: 'Blog', BN: 'ব্লগ' } },
+  { path: '/reviews', label: { EN: 'Reviews', BN: 'রিভিউ' } },
   { path: '/contact', label: { EN: 'Contact', BN: 'যোগাযোগ' } },
 ];
 

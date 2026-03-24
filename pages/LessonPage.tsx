@@ -5,8 +5,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion as m, AnimatePresence } from 'framer-motion';
 const motion = m as any;
 import { 
-  Play, ChevronRight, ChevronLeft, ArrowLeft, Video, 
-  Lock, BookOpen, Clock, CheckCircle2, Volume2, Maximize2, ShieldAlert, ChevronDown, ExternalLink
+  Play, Pause, ChevronRight, ChevronLeft, ArrowLeft, Video, 
+  Lock, BookOpen, Clock, CheckCircle2, Volume2, Maximize2, ShieldAlert, ChevronDown, ExternalLink,
+  RotateCcw, VolumeX
 } from 'lucide-react';
 import { Language, User, Lesson, Course, Enrollment } from '../types';
 import { dataService } from '../services/dataService';
@@ -27,6 +28,14 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Custom Player State
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(100);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showControls, setShowControls] = useState(true);
 
   const [notes, setNotes] = useState('');
   const [isNotesOpen, setIsNotesOpen] = useState(false);
@@ -144,43 +153,72 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
   useEffect(() => {
     if (!currentLesson) return;
 
-    // Load YouTube API script
+    const getYTId = (url: string) => {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+    };
+    const videoId = getYTId(currentLesson.videoUrl);
+
+    if (!videoId) {
+      console.error("Invalid YouTube URL:", currentLesson.videoUrl);
+      return;
+    }
+
+    const onPlayerReady = (event: any) => {
+      setDuration(event.target.getDuration());
+      // Ensure volume is synced
+      event.target.setVolume(volume);
+    };
+
+    const onPlayerStateChange = (event: any) => {
+      const YT = (window as any).YT;
+      if (!YT) return;
+      
+      if (event.data === YT.PlayerState.PLAYING) {
+        setIsPlaying(true);
+      } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+        setIsPlaying(false);
+      }
+    };
+
+    const initPlayer = () => {
+      if (!(window as any).YT || !(window as any).YT.Player) return;
+      
+      if ((window as any).player && (window as any).player.destroy) {
+        (window as any).player.destroy();
+      }
+
+      (window as any).player = new (window as any).YT.Player('youtube-player', {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          'playsinline': 1,
+          'rel': 0,
+          'controls': 0,
+          'modestbranding': 1,
+          'showinfo': 0,
+          'iv_load_policy': 3,
+          'disablekb': 1,
+          'fs': 0,
+          'origin': window.location.origin
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    };
+
     if (!(window as any).YT) {
       const tag = document.createElement('script');
       tag.src = "https://www.youtube.com/iframe_api";
       const firstScriptTag = document.getElementsByTagName('script')[0];
       firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-    }
-
-    const videoId = getYouTubeEmbedUrl(currentLesson.videoUrl).split('/').pop();
-
-    (window as any).onYouTubeIframeAPIReady = () => {
-      (window as any).player = new (window as any).YT.Player('youtube-player', {
-        height: '100%',
-        width: '100%',
-        videoId: videoId,
-        playerVars: {
-          'playsinline': 1,
-          'rel': 0,
-          'controls': 1,
-          'modestbranding': 1
-        }
-      });
-    };
-
-    // If API is already loaded, initialize player directly
-    if ((window as any).YT && (window as any).YT.Player) {
-      (window as any).player = new (window as any).YT.Player('youtube-player', {
-        height: '100%',
-        width: '100%',
-        videoId: videoId,
-        playerVars: {
-          'playsinline': 1,
-          'rel': 0,
-          'controls': 1,
-          'modestbranding': 1
-        }
-      });
+      (window as any).onYouTubeIframeAPIReady = initPlayer;
+    } else {
+      initPlayer();
     }
 
     return () => {
@@ -189,6 +227,69 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
       }
     };
   }, [currentLesson]);
+
+  useEffect(() => {
+    let interval: any;
+    if (isPlaying) {
+      interval = setInterval(() => {
+        const player = (window as any).player;
+        if (player && player.getCurrentTime) {
+          setCurrentTime(player.getCurrentTime());
+        }
+      }, 500);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
+  const togglePlay = () => {
+    const player = (window as any).player;
+    if (!player) return;
+    if (isPlaying) {
+      player.pauseVideo();
+    } else {
+      player.playVideo();
+    }
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const player = (window as any).player;
+    if (!player) return;
+    const time = parseFloat(e.target.value);
+    player.seekTo(time, true);
+    setCurrentTime(time);
+  };
+
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return [h, m, s]
+      .map(v => v < 10 ? "0" + v : v)
+      .filter((v, i) => v !== "00" || i > 0)
+      .join(":");
+  };
+
+  const toggleMute = () => {
+    const player = (window as any).player;
+    if (!player) return;
+    if (isMuted) {
+      player.unMute();
+      setIsMuted(false);
+    } else {
+      player.mute();
+      setIsMuted(true);
+    }
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const player = (window as any).player;
+    if (!player) return;
+    const val = parseInt(e.target.value);
+    player.setVolume(val);
+    setVolume(val);
+    if (val === 0) setIsMuted(true);
+    else setIsMuted(false);
+  };
 
   if (loading) return (
     <div className="h-[80vh] flex items-center justify-center">
@@ -259,8 +360,92 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
             >
               <h1 className="text-4xl font-black mb-10 tracking-tight text-zinc-900 dark:text-white leading-tight">{currentLesson.title}</h1>
               
-              <div className="aspect-video w-full rounded-[3rem] overflow-hidden bg-black shadow-2xl border-4 border-white dark:border-zinc-800 mb-12 relative group" id="youtube-player-container">
+              <div 
+                className="aspect-video w-full rounded-[3rem] overflow-hidden bg-black shadow-2xl border-4 border-white dark:border-zinc-800 mb-12 relative group" 
+                id="youtube-player-container"
+                onMouseEnter={() => setShowControls(true)}
+                onMouseLeave={() => isPlaying && setShowControls(false)}
+              >
                 <div id="youtube-player" className="w-full h-full"></div>
+                
+                {/* Custom Controls Overlay */}
+                <div 
+                  className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 transition-opacity duration-500 flex flex-col justify-end p-8 ${
+                    showControls ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  onClick={togglePlay}
+                >
+                  {/* Big Play/Pause Button */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <m.div 
+                      initial={false}
+                      animate={{ scale: isPlaying ? 0.8 : 1, opacity: isPlaying ? 0 : 1 }}
+                      className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20"
+                    >
+                      {isPlaying ? <Pause className="w-10 h-10 text-white" /> : <Play className="w-10 h-10 text-white ml-2" />}
+                    </m.div>
+                  </div>
+
+                  {/* Bottom Controls */}
+                  <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
+                    {/* Progress Bar */}
+                    <div className="flex items-center gap-4 group/progress">
+                      <span className="text-[10px] font-black text-white/70 w-12">{formatTime(currentTime)}</span>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max={duration || 0} 
+                        value={currentTime} 
+                        onChange={handleSeek}
+                        className="flex-grow h-1.5 bg-white/20 rounded-full appearance-none cursor-pointer accent-[#C1121F] hover:h-2 transition-all"
+                      />
+                      <span className="text-[10px] font-black text-white/70 w-12">{formatTime(duration)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                        <button onClick={togglePlay} className="text-white hover:text-[#C1121F] transition-colors">
+                          {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}
+                        </button>
+                        
+                        <div className="flex items-center gap-3 group/volume">
+                          <button onClick={toggleMute} className="text-white hover:text-[#C1121F] transition-colors">
+                            {isMuted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                          </button>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            value={isMuted ? 0 : volume} 
+                            onChange={handleVolumeChange}
+                            className="w-0 group-hover/volume:w-24 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-white transition-all overflow-hidden"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="px-3 py-1 bg-white/10 backdrop-blur-md rounded-lg border border-white/10 text-[10px] font-black text-white uppercase tracking-widest">
+                          HD 1080p
+                        </div>
+                        <button 
+                          onClick={() => {
+                            const player = (window as any).player;
+                            if (player) {
+                              const iframe = player.getIframe();
+                              if (iframe.requestFullscreen) iframe.requestFullscreen();
+                              else if (iframe.mozRequestFullScreen) iframe.mozRequestFullScreen();
+                              else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+                              else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
+                            }
+                          }}
+                          className="text-white hover:text-[#C1121F] transition-colors"
+                        >
+                          <Maximize2 className="w-6 h-6" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-between items-center mb-12">
