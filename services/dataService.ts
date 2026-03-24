@@ -238,7 +238,11 @@ export const dataService = {
       .from('reviews')
       .upsert([review]);
     
-    return !error;
+    if (error) {
+      console.error("Supabase Save Review Error:", error);
+      throw new Error(error.message);
+    }
+    return true;
   },
   deleteReview: async (id: string) => {
     const { error } = await supabase

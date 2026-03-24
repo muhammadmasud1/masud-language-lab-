@@ -209,6 +209,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
           date: (f.get('date') as string) || new Date().toLocaleDateString(),
           status: (f.get('status') as any) || 'published'
         };
+        console.log('Saving review data:', data);
         await dataService.saveReview(data);
       }
 
