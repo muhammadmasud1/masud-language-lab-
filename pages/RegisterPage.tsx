@@ -99,11 +99,21 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
     setIsLoading(true);
 
     try {
-      // Firebase Registration
+      // 1. Check if user already exists in Supabase to prevent duplicate key errors
+      const existingSupabaseUser = await dataService.getUserByEmail(formData.email.toLowerCase());
+      if (existingSupabaseUser) {
+        setError(lang === 'EN' 
+          ? 'An account with this email already exists. Please log in instead.' 
+          : 'এই জিমেইল দিয়ে ইতিমধ্যে একটি একাউন্ট রয়েছে। দয়া করে লগইন করুন।');
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Firebase Registration
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const firebaseUser = userCredential.user;
 
-      // Send Verification Email
+      // 3. Send Verification Email
       await sendEmailVerification(firebaseUser);
 
       const newUser: User = {
@@ -119,7 +129,7 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
         lessonNotes: {}
       };
 
-      // Save additional user data to Supabase
+      // 4. Save additional user data to Supabase
       const result = await dataService.registerUser(newUser);
       
       if (result.success) {
@@ -133,7 +143,14 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
         setFormData({ name: '', email: '', phone: '', password: '', goal: 'Study' });
         setStep(1);
       } else {
-        setError(lang === 'EN' ? `Database Error: ${result.error}` : `ডাটাবেস সমস্যা: ${result.error}`);
+        // Handle specific Supabase errors
+        if (result.error?.includes('unique constraint "users_email_key"')) {
+          setError(lang === 'EN' ? 'This email is already registered.' : 'এই জিমেইলটি ইতিমধ্যে নিবন্ধিত।');
+        } else {
+          setError(lang === 'EN' ? `Database Error: ${result.error}` : `ডাটাবেস সমস্যা: ${result.error}`);
+        }
+        // If Supabase failed but Firebase succeeded, we might have an orphaned Firebase user.
+        // But since we checked Supabase first, this is less likely unless there's a race condition.
       }
     } catch (err: any) {
       console.error("Registration Error:", err);
