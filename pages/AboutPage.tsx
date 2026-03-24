@@ -14,6 +14,7 @@ const AboutPage: React.FC<Props> = ({ lang }) => {
     { year: '2024', title: { EN: 'Education at Nilphamari Technical Training Center', BN: 'নীলফামারী টেকনিক্যাল ট্রেনিং সেন্টার এ শিক্ষা গ্রহণ' } },
     { year: '2024', title: { EN: 'Published Master Chinese: 6000 Sentence Book', BN: 'Master Chinese: 6000 Sentence Book বই প্রকাশ' } },
     { year: '2025', title: { EN: 'Official Interpreter for Major Trade Expos', BN: 'প্রধান ট্রেড এক্সপোর অফিসিয়াল অনুবাদক' } },
+    { year: '2025', title: { EN: 'Confucius Institute at University of Dhaka', BN: 'ঢাকা বিশ্ববিদ্যালয়ের কনফুসিয়াস ইনস্টিটিউট' } },
   ];
 
   return (
