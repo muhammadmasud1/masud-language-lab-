@@ -32,6 +32,8 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -131,7 +133,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSaving(true);
     const f = new FormData(e.target as HTMLFormElement);
 
     try {
@@ -196,6 +198,12 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
         };
         await dataService.saveQuizQuestion(data);
       } else if (activeTab === 'reviews') {
+        let imageUrl = editingItem?.image || '';
+        
+        if (selectedFile) {
+          imageUrl = await dataService.uploadImage(selectedFile);
+        }
+
         const data: Review = {
           id: editingItem?.id || 'rev-' + Date.now(),
           rating: f.get('rating') ? parseInt(f.get('rating') as string) : undefined,
@@ -203,7 +211,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
             EN: (f.get('content_en') as string) || '', 
             BN: (f.get('content_bn') as string) || '' 
           },
-          image: f.get('image') as string,
+          image: imageUrl,
           date: (f.get('date') as string) || new Date().toLocaleDateString(),
           status: (f.get('status') as any) || 'published'
         };
@@ -214,11 +222,12 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
       await loadAllData();
       setIsModalOpen(false);
       setEditingItem(null);
+      setSelectedFile(null);
       showStatus('success', 'তথ্য সংরক্ষিত হয়েছে');
     } catch (err) {
       showStatus('error', 'সেভ করা যায়নি');
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -509,7 +518,19 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                       <Textarea name="content_en" label="Review Content (EN)" val={editingItem?.content?.EN} required={false} />
                       <Textarea name="content_bn" label="Review Content (BN)" val={editingItem?.content?.BN} required={false} />
                     </div>
-                    <Input name="image" label="Screenshot URL (Book Buy)" val={editingItem?.image} required={true} />
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Screenshot Image (Book Buy)</label>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                        required={!editingItem?.image}
+                        className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold"
+                      />
+                      {editingItem?.image && !selectedFile && (
+                        <p className="text-[9px] text-zinc-400 ml-1 italic">Current image: {editingItem.image.substring(0, 40)}...</p>
+                      )}
+                    </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Status</label>
                       <select name="status" defaultValue={editingItem?.status || 'published'} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold">
@@ -542,8 +563,8 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                 )}
                  <div className="flex justify-end gap-4 pt-6">
                     <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-4 font-bold text-zinc-400 hover:text-zinc-600 transition-colors">Cancel</button>
-                    <button type="submit" className="bg-[#C1121F] text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center gap-3 shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all active:scale-95">
-                       <Save className="w-5 h-5" /> Save Data
+                    <button type="submit" disabled={isSaving} className="bg-[#C1121F] text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center gap-3 shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all active:scale-95 disabled:opacity-50">
+                       <Save className="w-5 h-5" /> {isSaving ? 'সংরক্ষণ হচ্ছে...' : 'Save Data'}
                     </button>
                  </div>
                </form>
