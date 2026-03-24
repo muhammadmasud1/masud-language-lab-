@@ -198,8 +198,6 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
       } else if (activeTab === 'reviews') {
         const data: Review = {
           id: editingItem?.id || 'rev-' + Date.now(),
-          userName: (f.get('userName') as string) || undefined,
-          userRole: (f.get('userRole') as string) || undefined,
           rating: f.get('rating') ? parseInt(f.get('rating') as string) : undefined,
           content: { 
             EN: (f.get('content_en') as string) || '', 
@@ -398,7 +396,9 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                   activeTab === 'blog' ? localArticles : 
                   activeTab === 'reviews' ? localReviews : localQuizQuestions).map((item: any) => (
                   <tr key={item.id} className="text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                    <td className="px-8 py-5 font-bold text-zinc-900 dark:text-zinc-100">{item.title?.EN || item.title || item.question || item.userName}</td>
+                    <td className="px-8 py-5 font-bold text-zinc-900 dark:text-zinc-100">
+                      {item.title?.EN || item.title || item.question || item.userName || (item.content?.EN ? item.content.EN.substring(0, 30) + '...' : 'Review')}
+                    </td>
                     <td className="px-8 py-5 text-zinc-400">{item.price ? `৳${item.price}` : (item.courseId || item.category || (item.rating ? `${item.rating} Stars` : 'Quiz'))}</td>
                     <td className="px-8 py-5 text-right space-x-2">
                       <button onClick={() => { setEditingItem(item); setIsModalOpen(true); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit3 className="w-4 h-4" /></button>
@@ -496,10 +496,6 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                 {activeTab === 'reviews' && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
-                      <Input name="userName" label="Student Name" val={editingItem?.userName} required={false} />
-                      <Input name="userRole" label="Student Role" val={editingItem?.userRole} required={false} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-1">
                         <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Rating (1-5)</label>
                         <input name="rating" type="number" min="1" max="5" defaultValue={editingItem?.rating || 5} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold" />
@@ -513,7 +509,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                       <Textarea name="content_en" label="Review Content (EN)" val={editingItem?.content?.EN} required={false} />
                       <Textarea name="content_bn" label="Review Content (BN)" val={editingItem?.content?.BN} required={false} />
                     </div>
-                    <Input name="image" label="Student Image URL" val={editingItem?.image} required={true} />
+                    <Input name="image" label="Screenshot URL (Book Buy)" val={editingItem?.image} required={true} />
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Status</label>
                       <select name="status" defaultValue={editingItem?.status || 'published'} className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold">

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Quote, MessageSquare, Sparkles } from 'lucide-react';
+import { Star, Quote, MessageSquare, Sparkles, CheckCircle } from 'lucide-react';
 import { Language, Review } from '../types';
 import { dataService } from '../services/dataService';
 
@@ -66,51 +66,61 @@ const ReviewPage: React.FC<Props> = ({ lang }) => {
             <div className="w-12 h-12 border-4 border-[#C1121F]/20 border-t-[#C1121F] rounded-full animate-spin" />
           </div>
         ) : reviews.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
             {reviews.map((review, idx) => (
               <motion.div
                 key={review.id}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-2xl hover:scale-[1.02] transition-all relative group"
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05 }}
+                className="break-inside-avoid bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-2xl hover:scale-[1.01] transition-all overflow-hidden group"
               >
-                <div className="absolute top-8 right-8 text-zinc-100 dark:text-zinc-800 group-hover:text-[#C1121F]/10 transition-colors">
-                  <Quote className="w-12 h-12 fill-current" />
-                </div>
-
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-zinc-100 dark:border-zinc-800">
+                {/* Screenshot Image */}
+                {review.image && (
+                  <div className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                     <img 
-                      src={review.image || `https://ui-avatars.com/api/?name=${review.userName}&background=random`} 
-                      alt={review.userName}
-                      className="w-full h-full object-cover"
+                      src={review.image} 
+                      alt={review.userName || 'Review Screenshot'}
+                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
                       referrerPolicy="no-referrer"
                     />
+                    <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest text-[#C1121F] shadow-sm border border-red-100 dark:border-red-900/30">
+                      {lang === 'EN' ? 'Verified Purchase' : 'ভেরিফাইড পারচেজ'}
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-black text-zinc-900 dark:text-white leading-tight">{review.userName || (lang === 'EN' ? 'Anonymous Student' : 'অজ্ঞাত শিক্ষার্থী')}</h3>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{review.userRole || (lang === 'EN' ? 'Student' : 'শিক্ষার্থী')}</p>
+                )}
+
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star 
+                          key={i} 
+                          className={`w-3 h-3 ${i < (review.rating || 5) ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-200 dark:text-zinc-800'}`} 
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 text-[#C1121F]">
+                      <CheckCircle className="w-3 h-3" />
+                      <span className="text-[9px] font-black uppercase tracking-widest">Verified Buy</span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_, i) => (
-                    <Star 
-                      key={i} 
-                      className={`w-4 h-4 ${i < (review.rating || 5) ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-200 dark:text-zinc-800'}`} 
-                    />
-                  ))}
-                </div>
+                  {review.content?.[lang] && (
+                    <div className="relative">
+                      <Quote className="w-8 h-8 text-zinc-100 dark:text-zinc-800 absolute -top-4 -left-2 -z-0" />
+                      <p className="text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed italic relative z-10 text-sm">
+                        "{review.content[lang]}"
+                      </p>
+                    </div>
+                  )}
 
-                <p className="text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed italic">
-                  "{review.content?.[lang] || (lang === 'EN' ? 'No content provided.' : 'কোনো তথ্য প্রদান করা হয়নি।')}"
-                </p>
-
-                <div className="mt-8 pt-8 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{review.date}</span>
-                  <div className="w-8 h-8 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400">
-                    <MessageSquare className="w-4 h-4" />
+                  <div className="mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                    <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{review.date}</span>
+                    <div className="w-6 h-6 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400">
+                      <MessageSquare className="w-3 h-3" />
+                    </div>
                   </div>
                 </div>
               </motion.div>
