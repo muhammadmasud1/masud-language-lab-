@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Star, Quote, MessageSquare, Sparkles, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Star, Quote, MessageSquare, Sparkles, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Language, Review } from '../types';
 import { dataService } from '../services/dataService';
 
@@ -10,6 +10,8 @@ interface Props { lang: Language; }
 const ReviewPage: React.FC<Props> = ({ lang }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -26,10 +28,24 @@ const ReviewPage: React.FC<Props> = ({ lang }) => {
     fetchReviews();
   }, []);
 
+  const totalPages = Math.ceil(reviews.length / itemsPerPage);
+
+  const currentReviews = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return reviews.slice(startIndex, startIndex + itemsPerPage);
+  }, [reviews, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const translations = {
     title: { EN: 'Student Reviews', BN: 'শিক্ষার্থীদের মতামত' },
     subtitle: { EN: 'What our students say about their learning experience.', BN: 'আমাদের শিক্ষার্থীদের শেখার অভিজ্ঞতা সম্পর্কে তাদের মতামত।' },
-    noReviews: { EN: 'No reviews yet.', BN: 'এখনও কোনো রিভিউ নেই।' }
+    noReviews: { EN: 'No reviews yet.', BN: 'এখনও কোনো রিভিউ নেই।' },
+    prev: { EN: 'Previous', BN: 'আগের' },
+    next: { EN: 'Next', BN: 'পরের' }
   };
 
   return (
@@ -65,67 +81,133 @@ const ReviewPage: React.FC<Props> = ({ lang }) => {
           <div className="flex justify-center py-20">
             <div className="w-12 h-12 border-4 border-[#C1121F]/20 border-t-[#C1121F] rounded-full animate-spin" />
           </div>
-        ) : reviews.length > 0 ? (
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-            {reviews.map((review, idx) => (
-              <motion.div
-                key={review.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.05 }}
-                className="break-inside-avoid bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-2xl hover:scale-[1.01] transition-all overflow-hidden group"
-              >
-                {/* Screenshot Image */}
-                {review.image && (
-                  <div className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                    <img 
-                      src={review.image} 
-                      alt={review.userName || 'Review Screenshot'}
-                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest text-[#C1121F] shadow-sm border border-red-100 dark:border-red-900/30">
-                      {lang === 'EN' ? 'Verified Purchase' : 'ভেরিফাইড পারচেজ'}
-                    </div>
-                  </div>
-                )}
-
-                <div className="p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          className={`w-3 h-3 ${i < (review.rating || 5) ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-200 dark:text-zinc-800'}`} 
+        ) : currentReviews.length > 0 ? (
+          <>
+            <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+              <AnimatePresence mode="wait">
+                {currentReviews.map((review, idx) => (
+                  <motion.div
+                    key={review.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="break-inside-avoid bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-2xl hover:scale-[1.01] transition-all overflow-hidden group"
+                  >
+                    {/* Screenshot Image */}
+                    {review.image && (
+                      <div className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                        <img 
+                          src={review.image} 
+                          alt={review.userName || 'Review Screenshot'}
+                          className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
+                          referrerPolicy="no-referrer"
                         />
-                      ))}
+                        <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest text-[#C1121F] shadow-sm border border-red-100 dark:border-red-900/30">
+                          {lang === 'EN' ? 'Verified Purchase' : 'ভেরিফাইড পারচেজ'}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="p-8">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`w-3 h-3 ${i < (review.rating || 5) ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-200 dark:text-zinc-800'}`} 
+                            />
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2 text-[#C1121F]">
+                          <CheckCircle className="w-3 h-3" />
+                          <span className="text-[9px] font-black uppercase tracking-widest">Verified Buy</span>
+                        </div>
+                      </div>
+
+                      {review.content?.[lang] && (
+                        <div className="relative">
+                          <Quote className="w-8 h-8 text-zinc-100 dark:text-zinc-800 absolute -top-4 -left-2 -z-0" />
+                          <p className="text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed italic relative z-10 text-sm">
+                            "{review.content[lang]}"
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{review.date}</span>
+                        <div className="w-6 h-6 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400">
+                          <MessageSquare className="w-3 h-3" />
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-[#C1121F]">
-                      <CheckCircle className="w-3 h-3" />
-                      <span className="text-[9px] font-black uppercase tracking-widest">Verified Buy</span>
-                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-20 flex flex-col items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#C1121F] hover:text-[#C1121F] transition-all"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  
+                  <div className="flex items-center gap-2 px-2">
+                    {[...Array(totalPages)].map((_, i) => {
+                      const page = i + 1;
+                      // Show first, last, and pages around current
+                      if (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      ) {
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`w-12 h-12 rounded-2xl font-black text-xs transition-all ${
+                              currentPage === page
+                                ? 'bg-[#C1121F] text-white shadow-lg shadow-red-500/20'
+                                : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-[#C1121F] hover:text-[#C1121F]'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      }
+                      // Show dots
+                      if (
+                        page === currentPage - 2 ||
+                        page === currentPage + 2
+                      ) {
+                        return <span key={page} className="text-zinc-400 font-black">...</span>;
+                      }
+                      return null;
+                    })}
                   </div>
 
-                  {review.content?.[lang] && (
-                    <div className="relative">
-                      <Quote className="w-8 h-8 text-zinc-100 dark:text-zinc-800 absolute -top-4 -left-2 -z-0" />
-                      <p className="text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed italic relative z-10 text-sm">
-                        "{review.content[lang]}"
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-                    <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{review.date}</span>
-                    <div className="w-6 h-6 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400">
-                      <MessageSquare className="w-3 h-3" />
-                    </div>
-                  </div>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 disabled:opacity-30 disabled:cursor-not-allowed hover:border-[#C1121F] hover:text-[#C1121F] transition-all"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+                
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  {lang === 'EN' ? `Page ${currentPage} of ${totalPages}` : `পৃষ্ঠা ${currentPage} / ${totalPages}`}
+                </p>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-[3rem] border border-dashed border-zinc-200 dark:border-zinc-800">
             <p className="text-zinc-500 font-bold">{translations.noReviews[lang]}</p>
