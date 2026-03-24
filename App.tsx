@@ -69,7 +69,8 @@ const App: React.FC = () => {
           if (profile) {
             const userWithProgress = {
               ...profile,
-              completedLessons: profile.completedLessons || []
+              completedLessons: profile.completedLessons || [],
+              lessonNotes: profile.lessonNotes || {}
             };
             setCurrentUser(userWithProgress);
             localStorage.setItem('huayu_user', JSON.stringify(userWithProgress));

@@ -73,7 +73,8 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
             isAdmin: false,
             enrolledCourses: [],
             purchasedBooks: [],
-            completedLessons: []
+            completedLessons: [],
+            lessonNotes: {}
           };
           
           const result = await dataService.registerUser(newUser);

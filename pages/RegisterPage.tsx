@@ -55,7 +55,8 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
             isAdmin: false,
             enrolledCourses: [],
             purchasedBooks: [],
-            completedLessons: []
+            completedLessons: [],
+            lessonNotes: {}
           };
           
           const result = await dataService.registerUser(newUser);
@@ -105,7 +106,8 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
         isAdmin: false,
         enrolledCourses: [],
         purchasedBooks: [],
-        completedLessons: []
+        completedLessons: [],
+        lessonNotes: {}
       };
 
       // Save additional user data to Supabase

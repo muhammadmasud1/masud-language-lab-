@@ -13,6 +13,7 @@ export interface User {
   enrolledCourses: string[]; // Approved course IDs
   purchasedBooks: string[];
   completedLessons: string[]; // Lesson IDs
+  lessonNotes?: { [lessonId: string]: string };
 }
 
 export interface QuizQuestion {

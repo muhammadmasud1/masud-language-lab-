@@ -6,7 +6,7 @@ import { motion as m, AnimatePresence } from 'framer-motion';
 const motion = m as any;
 import { 
   Play, ChevronRight, ChevronLeft, ArrowLeft, Video, 
-  Lock, BookOpen, Clock, CheckCircle2, Volume2, Maximize2, ShieldAlert
+  Lock, BookOpen, Clock, CheckCircle2, Volume2, Maximize2, ShieldAlert, ChevronDown
 } from 'lucide-react';
 import { Language, User, Lesson, Course, Enrollment } from '../types';
 import { dataService } from '../services/dataService';
@@ -27,6 +27,29 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [notes, setNotes] = useState('');
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
+
+  useEffect(() => {
+    if (currentLesson) {
+      setNotes(user.lessonNotes?.[currentLesson.id] || '');
+    }
+  }, [currentLesson, user.lessonNotes]);
+
+  const handleSaveNotes = async () => {
+    if (!currentLesson) return;
+    const updatedLessonNotes = {
+      ...(user.lessonNotes || {}),
+      [currentLesson.id]: notes
+    };
+    const updatedUser = { ...user, lessonNotes: updatedLessonNotes };
+    const success = await dataService.updateUser(user.id, { lessonNotes: updatedLessonNotes });
+    if (success) {
+      setUser(updatedUser);
+      localStorage.setItem('huayu_user', JSON.stringify(updatedUser));
+    }
+  };
 
   const handleLessonComplete = async (lessonId: string) => {
     if (user.completedLessons.includes(lessonId)) return;
@@ -304,6 +327,40 @@ const LessonPage: React.FC<Props> = ({ lang, user, setUser }) => {
                       </div>
                    </div>
                 </div>
+              </div>
+
+              {/* Lesson Notes Section */}
+              <div className="mt-8 bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+                <button 
+                  onClick={() => setIsNotesOpen(!isNotesOpen)}
+                  className="w-full p-6 flex items-center justify-between font-black uppercase tracking-widest text-xs hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
+                >
+                  Lesson Notes
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isNotesOpen ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {isNotesOpen && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="px-6 pb-6"
+                    >
+                      <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Write your notes here..."
+                        className="w-full h-40 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 focus:ring-2 focus:ring-[#C1121F] outline-none resize-none mb-4"
+                      />
+                      <button 
+                        onClick={handleSaveNotes}
+                        className="px-6 py-3 bg-[#C1121F] text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-all"
+                      >
+                        Save Notes
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           ) : (
