@@ -54,7 +54,7 @@ export const COURSES: Course[] = [
     title: { EN: 'HSK 1: Standard Course', BN: 'HSK ১: স্ট্যান্ডার্ড কোর্স' },
     level: 'Beginner',
     duration: '8 Weeks',
-    price: '৳ 1,500',
+    price: '৳ 1,999',
     description: { 
       EN: 'The essential start. Master the Pinyin system and initial 150 Hanzi characters.', 
       BN: 'নতুনদের জন্য আদর্শ শুরু। ১৫০টি মূল শব্দ এবং মৌলিক বাক্য গঠন শিখুন।' 
@@ -67,7 +67,7 @@ export const COURSES: Course[] = [
     title: { EN: 'HSK 2: Standard Course', BN: 'HSK ২: স্ট্যান্ডার্ড কোর্স' },
     level: 'Elementary',
     duration: '10 Weeks',
-    price: '৳ 1,500',
+    price: '৳ 1,999',
     description: { 
       EN: 'Expand your vocabulary. Master 300 words and daily conversations.', 
       BN: 'আপনার দক্ষতা বাড়ান। ৩০০ শব্দ আয়ত্ত করুন এবং দৈনন্দিন কথোপকথন শিখুন।' 
@@ -80,7 +80,7 @@ export const COURSES: Course[] = [
     title: { EN: 'HSK 3: Standard Course', BN: 'HSK ৩: স্ট্যান্ডার্ড কোর্স' },
     level: 'Intermediate',
     duration: '12 Weeks',
-    price: '৳ 2,000',
+    price: '৳ 2,999',
     description: { 
       EN: 'Achieve fluency. Master 600 words and discuss various topics.', 
       BN: 'সাবলীলতা অর্জন করুন। ৬০০ শব্দ আয়ত্ত করুন এবং বিভিন্ন বিষয়ে কথা বলা শিখুন।' 
@@ -93,7 +93,7 @@ export const COURSES: Course[] = [
     title: { EN: 'HSK 4: Standard Course', BN: 'HSK ৪: স্ট্যান্ডার্ড কোর্স' },
     level: 'Advanced',
     duration: '16 Weeks',
-    price: '৳ 3,000',
+    price: '৳ 3,999',
     description: { 
       EN: 'Professional proficiency. Master 1200 words and complex topics.', 
       BN: 'পেশাদার দক্ষতা। ১২০০ শব্দ আয়ত্ত করুন এবং জটিল বিষয়ে সাবলীলভাবে আলোচনা করুন।' 
@@ -106,7 +106,7 @@ export const COURSES: Course[] = [
     title: { EN: 'Full Course: HSK 1 to 4 Bundle', BN: 'ফুল কোর্স: HSK ১ থেকে ৪ বান্ডেল' },
     level: 'Comprehensive',
     duration: '12 Months',
-    price: '৳ 6,000',
+    price: '৳ 6,999',
     description: { 
       EN: 'Complete HSK 1-4 access at a discounted price. Best for career success.', 
       BN: 'সাবলীল চাইনিজ শেখার সেরা পথ। ডিসকাউন্ট মূল্যে HSK ১, ২, ৩ এবং ৪ এর পূর্ণ এক্সেস।' 
@@ -119,7 +119,7 @@ export const COURSES: Course[] = [
     title: { EN: 'Intensive Spoken Chinese', BN: 'নিবিড় কথোপকথন চাইনিজ' },
     level: 'Conversation',
     duration: '8 Weeks',
-    price: '৳ 5,000',
+    price: '৳ 4,999',
     description: { 
       EN: 'Focus on speaking fluency and natural pronunciation for business.', 
       BN: 'ব্যবসা এবং যোগাযোগের জন্য সাবলীল উচ্চারণ শিখুন।' 

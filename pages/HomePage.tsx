@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { motion as m } from 'framer-motion';
+import { motion as m, AnimatePresence } from 'framer-motion';
 const motion = m as any;
 import { ArrowRight, Star, GraduationCap, Globe, PenTool, Sparkles, Languages, ChevronRight, Award, CheckCircle2, ShieldCheck, MessageSquare, Book, Briefcase, Activity, Zap } from 'lucide-react';
 import { Language } from '../types';
@@ -10,130 +10,232 @@ import { Link } from 'react-router-dom';
 interface Props { lang: Language; }
 
 const HomePage: React.FC<Props> = ({ lang }) => {
+  const heroSlides = [
+    {
+      id: 1,
+      title: lang === 'BN' ? (
+        <>নির্ভুলতা এবং গভীরতায় <span className="text-[#C1121F]">চাইনিজ</span> শিখুন</>
+      ) : (
+        <>Learn <span className="text-[#C1121F]">Chinese</span> with Precision & Depth</>
+      ),
+      description: lang === 'BN' 
+        ? 'বাংলাদেশে অভিজ্ঞ বিশেষজ্ঞের কাছ থেকে HSK কোচিং এবং মানসম্মত শিক্ষা নিশ্চিত করুন।' 
+        : 'Ensure quality education and HSK coaching from experienced experts in Bangladesh.',
+      image: "https://i.ibb.co.com/BVt9KnYL/file-00000000819071fdac0a25375e832d12-2.jpg",
+      badge: lang === 'BN' ? 'সার্টিফায়েড চাইনিজ ইন্সট্রাক্টর' : 'Certified Chinese Instructor',
+      cta: lang === 'BN' ? 'শিক্ষা শুরু করুন' : 'Start Education',
+      link: "/courses",
+      icon: <GraduationCap className="w-5 h-5" />,
+      color: "#C1121F"
+    },
+    {
+      id: 2,
+      title: lang === 'BN' ? (
+        <>পেশাদার <span className="text-blue-600">অনুবাদ</span> এবং দোভাষী সেবা</>
+      ) : (
+        <>Professional <span className="text-blue-600">Translation</span> & Interpreting</>
+      ),
+      description: lang === 'BN' 
+        ? 'উচ্চপর্যায়ের ব্যবসায়িক সম্মেলন এবং ফ্যাক্টরি ভিজিটের জন্য নির্ভরযোগ্য দোভাষী সেবা।' 
+        : 'Reliable interpretation services for high-level business summits and factory visits.',
+      image: "https://i.ibb.co.com/YTZ3mxcV/Whats-App-Image-2026-05-19-at-10-21-51-PM.jpg",
+      badge: lang === 'BN' ? 'পেশাদার অনুবাদক' : 'Professional Interpreter',
+      cta: lang === 'BN' ? 'সেবা গ্রহণ করুন' : 'Get Service',
+      link: "/interpreter",
+      icon: <Globe className="w-5 h-5" />,
+      color: "#2563eb"
+    },
+    {
+      id: 3,
+      title: lang === 'BN' ? (
+        <>সেরা মানের চাইনিজ <span className="text-orange-500">বইসমূহ</span></>
+      ) : (
+        <>Top Quality Chinese <span className="text-orange-500">Books</span> & Resources</>
+      ),
+      description: lang === 'BN' 
+        ? 'সহজ ও কার্যকর ভাবে চাইনিজ শিখতে আমাদের সংকলিত বইগুলো সংগ্রহ করুন।' 
+        : 'Collect our compiled books to learn Chinese easily and effectively.',
+      image: "https://images.unsplash.com/photo-1544640808-32ca72ac7f37?auto=format&fit=crop&q=80&w=1200",
+      badge: lang === 'BN' ? 'প্রধান লেখক' : 'Lead Author',
+      cta: lang === 'BN' ? 'বই কিনুন' : 'Buy Books',
+      link: "/store",
+      icon: <Book className="w-5 h-5" />,
+      color: "#f59e0b"
+    }
+  ];
+
+  const [currentSlide, setCurrentSlide] = React.useState(0);
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
+
   return (
     <div className="overflow-x-hidden bg-white dark:bg-zinc-950 transition-colors">
       
-      {/* Immersive Hero Section */}
-      <section className="relative min-h-[calc(100vh-6rem)] flex items-center justify-center py-10 px-6 overflow-hidden">
+      {/* Immersive Hero Carousel Section */}
+      <section className="relative min-h-[calc(100vh-6rem)] flex items-center justify-center py-20 px-6 overflow-hidden">
+        {/* Background Chinese Character Animation */}
         <div className="absolute left-[30%] top-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03] dark:opacity-[0.02] select-none z-0">
-          <span className="text-[40rem] chinese-font font-black leading-none">华</span>
+          <motion.span 
+            key={currentSlide}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.05, scale: 1 }}
+            transition={{ duration: 1 }}
+            className="text-[40rem] chinese-font font-black leading-none"
+          >
+            {currentSlide === 0 ? '教' : currentSlide === 1 ? '译' : '书'}
+          </motion.span>
         </div>
 
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 dark:bg-red-950/20 text-[#C1121F] text-[12px] font-black mb-8 border border-red-100 dark:border-red-900/30">
-              <ShieldCheck className="w-4 h-4" />
-              <span>{lang === 'BN' ? 'সার্টিফায়েড চাইনিজ ইন্সট্রাক্টর' : 'Certified Chinese Instructor'}</span>
-            </div>
+        <div className="max-w-7xl mx-auto w-full relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSlide}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 30 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left"
+              >
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 text-[12px] font-black mb-10 border border-zinc-200 dark:border-zinc-800 shadow-sm"
+                >
+                  <Sparkles className="w-4 h-4 text-gold" />
+                  <span>{heroSlides[currentSlide].badge}</span>
+                </motion.div>
 
-            <h1 className="text-5xl md:text-8xl font-black tracking-tight mb-8 leading-[1.1] text-zinc-900 dark:text-white">
-              {lang === 'BN' ? (
-                <>নির্ভুলতা এবং গভীরতায় <span className="text-[#C1121F]">চাইনিজ</span> শিখুন।</>
-              ) : (
-                <>Learn <span className="text-[#C1121F]">Chinese</span> with Precision & Depth.</>
-              )}
-            </h1>
+                <h1 className="text-5xl md:text-8xl font-black tracking-tight mb-8 leading-[1.1] text-zinc-900 dark:text-white">
+                  {heroSlides[currentSlide].title}
+                </h1>
 
-            <p className="text-lg md:text-xl text-zinc-500 dark:text-zinc-400 mb-10 max-w-xl leading-relaxed font-medium">
-              {lang === 'BN' 
-                ? 'বাংলাদেশে অভিজ্ঞ বিশেষজ্ঞের কাছ থেকে HSK কোচিং, পেশাদার অনুবাদ সেবা এবং মানসম্মত বই পাবেন।' 
-                : 'Get HSK coaching, professional translation services, and quality books from experienced experts in Bangladesh.'}
-            </p>
+                <p className="text-xl md:text-2xl text-zinc-500 dark:text-zinc-400 mb-12 max-w-2xl leading-relaxed font-medium">
+                  {heroSlides[currentSlide].description}
+                </p>
 
-            <div className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto mb-12">
-              <Link to="/courses" className="px-10 py-5 bg-[#C1121F] text-white rounded-2xl font-black uppercase tracking-widest text-[13px] hover:bg-red-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-red-900/20 group">
-                {lang === 'BN' ? 'শিক্ষা শুরু করুন' : 'Start Education'}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link to="/quiz" className="px-10 py-5 bg-zinc-900 text-white rounded-2xl font-black uppercase tracking-widest text-[13px] hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl">
-                <Sparkles className="w-5 h-5 text-gold" />
-                {lang === 'BN' ? 'চাইনিজ লার্ন কুইজ' : 'Chinese Learn Quiz'}
-              </Link>
-            </div>
+                <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto mb-16">
+                  <Link 
+                    to={heroSlides[currentSlide].link} 
+                    className="px-12 py-6 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-[2rem] font-black uppercase tracking-widest text-[14px] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 shadow-2xl"
+                  >
+                    {heroSlides[currentSlide].icon}
+                    {heroSlides[currentSlide].cta}
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                  <Link to="/about" className="px-12 py-6 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border-2 border-zinc-100 dark:border-zinc-800 rounded-[2rem] font-black uppercase tracking-widest text-[14px] hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all flex items-center justify-center gap-3">
+                    {lang === 'BN' ? 'বিস্তারিত জানুন' : 'Learn More'}
+                  </Link>
+                </div>
 
-            <div className="flex items-center gap-5">
-              <div className="flex -space-x-3">
-                {[1, 2, 3, 4].map(i => (
-                  <img key={i} src={`https://i.pravatar.cc/100?u=${i+20}`} className="w-10 h-10 rounded-full border-4 border-white dark:border-zinc-950 shadow-sm object-cover" alt="" />
+                <div className="flex items-center gap-6">
+                  <div className="flex -space-x-4">
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <img key={i} src={`https://i.pravatar.cc/150?u=${i+50}`} className="w-12 h-12 rounded-full border-4 border-white dark:border-zinc-950 shadow-xl object-cover" alt="" />
+                    ))}
+                  </div>
+                  <div className="text-left">
+                    <div className="flex gap-1 mb-1.5">
+                       {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 text-gold fill-current" />)}
+                    </div>
+                    <p className="text-[12px] font-black text-zinc-400 uppercase tracking-widest">
+                      {lang === 'BN' ? '১০০+ ছাত্রছাত্রীদের ভালোবাসা' : 'Loved by 100+ Students'}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            <motion.div
+              key={`img-${currentSlide}`}
+              initial={{ opacity: 0, scale: 0.9, rotate: -2 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ duration: 1 }}
+              className="lg:col-span-5 relative"
+            >
+              {/* HSK Success Card - Matching Screenshot */}
+              <motion.div 
+                animate={{ y: [0, -15, 0] }}
+                transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", delay: 0.5 }}
+                className="absolute -top-16 -right-12 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-6 rounded-[2rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border border-white dark:border-zinc-800 flex items-center gap-4"
+              >
+                <div className="w-14 h-14 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600">
+                   <GraduationCap className="w-7 h-7" />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1.5">{lang === 'BN' ? 'HSK সাফল্য' : 'HSK SUCCESS'}</p>
+                   <p className="text-xl font-black text-zinc-900 dark:text-white leading-none">98% Pass Rate</p>
+                </div>
+              </motion.div>
+
+              <div className="aspect-[4/5] rounded-[4rem] overflow-hidden bg-zinc-100 dark:bg-zinc-900 border-[16px] border-white dark:border-zinc-900 shadow-[0_80px_150px_-30px_rgba(0,0,0,0.4)] relative group">
+                <AnimatePresence mode="wait">
+                  <motion.img 
+                    key={heroSlides[currentSlide].image}
+                    src={heroSlides[currentSlide].image} 
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.1 }}
+                    transition={{ duration: 1 }}
+                    className="w-full h-full object-cover transition-all" 
+                    alt="MD. MASUD RANA" 
+                  />
+                </AnimatePresence>
+                <div className="absolute bottom-0 left-0 right-0 p-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                   <p className="text-zinc-300 font-bold uppercase tracking-widest text-[12px] mb-3">MD. MASUD RANA</p>
+                   <h3 className="text-2xl md:text-3xl font-black text-white leading-[1.2] tracking-tight">
+                      {lang === 'BN' ? 'চাইনিজ দোভাষী এবং ভাষা প্রশিক্ষক' : 'Chinese Interpreter & Language Teacher'}
+                   </h3>
+                </div>
+              </div>
+
+              {/* Slider Indicators */}
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-30">
+                {heroSlides.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentSlide(idx)}
+                    className={`h-2 rounded-full transition-all duration-500 ${currentSlide === idx ? 'w-12 bg-[#C1121F]' : 'w-3 bg-zinc-300 dark:bg-zinc-700'}`}
+                  />
                 ))}
               </div>
-              <div className="text-left">
-                <div className="flex gap-1 mb-1">
-                   {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 text-gold fill-current" />)}
-                </div>
-                <p className="text-[12px] font-black text-zinc-400 uppercase tracking-widest leading-none">
-                  {lang === 'BN' ? '১০০+ সফল ছাত্রছাত্রী' : '100+ Successful Students'}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.2 }}
-            className="lg:col-span-5 relative"
-          >
-            <motion.div 
-              animate={{ y: [0, -10, 0] }}
-              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="absolute -top-10 -right-6 md:-right-10 z-20 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-5 rounded-[2rem] shadow-2xl border border-white/50 dark:border-zinc-800/50 flex items-center gap-4"
-            >
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center text-green-600">
-                <GraduationCap className="w-6 h-6" />
-              </div>
-              <div>
-                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{lang === 'BN' ? 'HSK সাফল্য' : 'HSK SUCCESS'}</p>
-                 <p className="text-xl font-black text-zinc-900 dark:text-white">98% Pass Rate</p>
-              </div>
             </motion.div>
-
-            <div className="aspect-[4/5] rounded-[3.5rem] overflow-hidden bg-zinc-100 dark:bg-zinc-900 border-[12px] border-white dark:border-zinc-900 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] relative group">
-              <img 
-                src="https://i.ibb.co.com/BVt9KnYL/file-00000000819071fdac0a25375e832d12-2.jpg" 
-                className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105" 
-                alt="Md. Masud Rana" 
-              />
-              <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                 <p className="text-zinc-300 font-bold uppercase tracking-widest text-[11px] mb-2">MD. MASUD RANA</p>
-                 <h3 className="text-xl md:text-2xl font-black text-white leading-tight">
-                    Chinese Interpreter & Chinese Language Teacher
-                 </h3>
-              </div>
-            </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Stats Grid */}
-      <section className="py-16 px-6 bg-white dark:bg-zinc-950">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-           {[
-             { label: lang === 'BN' ? 'অভিজ্ঞতা' : 'Experience', value: '2+', icon: MessageSquare },
-             { label: lang === 'BN' ? 'ছাত্রছাত্রী' : 'Students', value: '100+', icon: GraduationCap },
-             { label: lang === 'BN' ? 'বই বিক্রি' : 'Books Sold', value: '1K+', icon: Book },
-             { label: lang === 'BN' ? 'প্রকল্প' : 'Projects', value: '10+', icon: ShieldCheck },
-           ].map((stat, i) => (
-             <motion.div 
-               key={i}
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: i * 0.1 }}
-               className="bg-zinc-50 dark:bg-zinc-900/50 rounded-[2.5rem] p-10 border border-zinc-100 dark:border-zinc-800 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all group"
-             >
-               <div className="w-16 h-16 bg-white dark:bg-zinc-800 rounded-3xl flex items-center justify-center text-[#C1121F] mb-6 shadow-md group-hover:scale-110 transition-transform">
-                 <stat.icon className="w-8 h-8" />
-               </div>
-               <h3 className="text-4xl font-black text-zinc-900 dark:text-white mb-2">{stat.value}</h3>
-               <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">{stat.label}</p>
-             </motion.div>
-           ))}
+      <section className="py-24 px-6 bg-white dark:bg-zinc-950">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { label: lang === 'BN' ? 'অভিজ্ঞতা' : 'Experience', value: '2+', icon: MessageSquare },
+              { label: lang === 'BN' ? 'ছাত্রছাত্রী' : 'Students', value: '100+', icon: GraduationCap },
+              { label: lang === 'BN' ? 'বই বিক্রি' : 'Books Sold', value: '1K+', icon: Book },
+              { label: lang === 'BN' ? 'প্রকল্প' : 'Projects', value: '10+', icon: ShieldCheck },
+            ].map((stat, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-zinc-50 dark:bg-zinc-900/50 rounded-[3rem] p-12 border border-zinc-100 dark:border-zinc-800 flex flex-col items-center text-center shadow-sm hover:shadow-2xl transition-all group"
+              >
+                <div className="w-20 h-20 bg-white dark:bg-zinc-800 rounded-3xl flex items-center justify-center text-[#C1121F] mb-8 shadow-lg group-hover:scale-110 transition-transform">
+                  <stat.icon className="w-10 h-10" />
+                </div>
+                <h3 className="text-5xl font-black text-zinc-900 dark:text-white mb-3">{stat.value}</h3>
+                <p className="text-[12px] font-black text-zinc-400 uppercase tracking-widest">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -321,7 +423,7 @@ const HomePage: React.FC<Props> = ({ lang }) => {
 
         <div className="max-w-7xl mx-auto px-6 mt-16 text-center">
            <p className="text-zinc-400 font-bold uppercase tracking-widest text-[10px]">
-             {lang === 'BN' ? '১০০০+ ছাত্রছাত্রীদের সাথে যোগ দিন' : 'Join 1000+ satisfied students'}
+             {lang === 'BN' ? '১০০+ ছাত্রছাত্রীদের সাথে যোগ দিন' : 'Join 100+ satisfied students'}
            </p>
         </div>
       </section>
@@ -341,7 +443,7 @@ const HomePage: React.FC<Props> = ({ lang }) => {
               <div className="relative z-10">
                 <h2 className="text-5xl md:text-8xl font-black mb-8 tracking-tight leading-tight">চাইনিজ শিখতে প্রস্তুত?</h2>
                 <p className="text-lg md:text-2xl opacity-80 max-w-2xl mx-auto mb-14 font-medium leading-relaxed">
-                  ১,০০০+ ছাত্র এবং পেশাদারদের সাথে যোগ দিন যারা আমাদের সাথে নতুন ক্যারিয়ার শুরু করেছেন।
+                  ১০০+ ছাত্র এবং পেশাদারদের সাথে যোগ দিন যারা আমাদের সাথে নতুন ক্যারিয়ার শুরু করেছেন।
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
