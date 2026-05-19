@@ -170,5 +170,41 @@ export const TESTIMONIALS: Testimonial[] = [
       BN: 'বাংলাদেশের সেরা চাইনিজ শিক্ষক। তার পাঠদান অত্যন্ত সহজবোধ্য!' 
     },
     avatar: 'https://i.pravatar.cc/150?u=sumaiya',
+  },
+  {
+    name: 'Asif Mahmud',
+    role: 'HSK 4 STUDENT',
+    content: { 
+      EN: "I passed HSK 4 with flying colors! The notes provided in the class were extremely helpful.", 
+      BN: "আমি দারুণভাবে HSK ৪ পাশ করেছি! ক্লাসে দেওয়া নোটগুলো খুবই সহায়ক ছিল।" 
+    },
+    avatar: 'https://i.pravatar.cc/150?u=asif',
+  },
+  {
+    name: 'Farhana Yeasmin',
+    role: 'BEGINNER STUDENT',
+    content: { 
+      EN: "Chinese characters seemed scary, but Masud sir's teaching made it fun and easy.", 
+      BN: "চাইনিজ অক্ষর দেখে ভয় লাগত, কিন্তু মাসুদ স্যারের পাঠদান তা মজাদার এবং সহজ করে দিয়েছে।" 
+    },
+    avatar: 'https://i.pravatar.cc/150?u=farhana',
+  },
+  {
+    name: 'Tanvir Ahmed',
+    role: 'BUSINESSMAN',
+    content: { 
+      EN: "His books are the best resource for Bengali speakers to learn Chinese naturally.", 
+      BN: "বাঙালিদের জন্য চমৎকারভাবে চাইনিজ ভাষা শেখার জন্য স্যারের বইগুলো সেরা রিসোর্স।" 
+    },
+    avatar: 'https://i.pravatar.cc/150?u=tanvir',
+  },
+  {
+    name: 'Nusrat Jahan',
+    role: 'HSK 2 STUDENT',
+    content: { 
+      EN: "The live classes are very interactive. I feel confident speaking Chinese now.", 
+      BN: "লাইভ ক্লাসগুলো খুব ইন্টারঅ্যাকটিভ। এখন আমি চাইনিজ বলতে আত্মবিশ্বাস পাই।" 
+    },
+    avatar: 'https://i.pravatar.cc/150?u=nusrat',
   }
 ];

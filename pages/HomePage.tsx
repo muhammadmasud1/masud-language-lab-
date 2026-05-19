@@ -263,43 +263,66 @@ const HomePage: React.FC<Props> = ({ lang }) => {
         </div>
       </section>
 
-      {/* Testimonials Section - Matching Screenshot */}
-      <section className="py-24 px-6 bg-white dark:bg-zinc-950">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-black mb-4 tracking-tight text-zinc-900 dark:text-white">ছাত্রছাত্রীদের বিশ্বস্ত</h2>
-            <div className="flex justify-center gap-1.5 text-gold mb-10">
-              {[1,2,3,4,5].map(s => <Star key={s} className="fill-current w-5 h-5" />)}
-            </div>
+      {/* Testimonials Section - Attractive Carousel */}
+      <section className="py-24 bg-white dark:bg-zinc-950 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
+          <h2 className="text-5xl font-black mb-4 tracking-tight text-zinc-900 dark:text-white">छाত্রছাত্রীদের বিশ্বস্ত</h2>
+          <div className="flex justify-center gap-1.5 text-gold mb-10">
+            {[1,2,3,4,5].map(s => <Star key={s} className="fill-current w-5 h-5" />)}
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {TESTIMONIALS.map((testimonial, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.2 }}
-                className="bg-white dark:bg-zinc-900 p-10 md:p-14 rounded-[3.5rem] border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-black/5 relative overflow-hidden group"
-              >
-                {/* Watermark character */}
-                <div className="absolute top-0 right-0 p-10 opacity-[0.03] text-9xl chinese-font pointer-events-none select-none">赞</div>
-                
-                <p className="text-xl md:text-2xl font-medium italic text-zinc-500 dark:text-zinc-300 mb-10 leading-relaxed">
-                  "{testimonial.content[lang]}"
-                </p>
-                
-                <div className="flex items-center gap-5">
-                  <img src={testimonial.avatar} className="w-16 h-16 rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all border border-zinc-100 dark:border-zinc-800" alt={testimonial.name} />
-                  <div>
-                    <h4 className="font-black text-zinc-900 dark:text-white uppercase tracking-wider">{testimonial.name}</h4>
-                    <p className="text-[10px] font-black text-[#C1121F] uppercase tracking-[0.2em]">{testimonial.role}</p>
+        <div className="relative">
+          {/* Gradient Masks for a polished look */}
+          <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
+          
+          <div className="flex">
+            <motion.div 
+              className="flex gap-8 py-10"
+              animate={{ 
+                x: [0, -1920] // Adjust based on total width
+              }}
+              transition={{ 
+                duration: 40, 
+                ease: "linear", 
+                repeat: Infinity 
+              }}
+              style={{ width: "fit-content" }}
+            >
+              {[...TESTIMONIALS, ...TESTIMONIALS].map((testimonial, idx) => (
+                <div
+                  key={idx}
+                  className="w-[350px] md:w-[450px] shrink-0 bg-white dark:bg-zinc-900 p-10 rounded-[3.5rem] border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-black/5 relative overflow-hidden group hover:border-[#C1121F] transition-colors"
+                >
+                  {/* Watermark character */}
+                  <div className="absolute top-0 right-0 p-10 opacity-[0.03] text-9xl chinese-font pointer-events-none select-none">赞</div>
+                  
+                  <div className="flex gap-1 mb-6 text-gold">
+                    {[1,2,3,4,5].map(s => <Star key={s} className="fill-current w-3 h-3" />)}
+                  </div>
+
+                  <p className="text-lg md:text-xl font-medium italic text-zinc-500 dark:text-zinc-300 mb-10 leading-relaxed min-h-[120px]">
+                    "{testimonial.content[lang]}"
+                  </p>
+                  
+                  <div className="flex items-center gap-5">
+                    <img src={testimonial.avatar} className="w-14 h-14 rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all border border-zinc-100 dark:border-zinc-800" alt={testimonial.name} />
+                    <div>
+                      <h4 className="font-black text-zinc-900 dark:text-white uppercase tracking-wider text-sm">{testimonial.name}</h4>
+                      <p className="text-[9px] font-black text-[#C1121F] uppercase tracking-[0.2em]">{testimonial.role}</p>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-            ))}
+              ))}
+            </motion.div>
           </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-6 mt-16 text-center">
+           <p className="text-zinc-400 font-bold uppercase tracking-widest text-[10px]">
+             {lang === 'BN' ? '১০০০+ ছাত্রছাত্রীদের সাথে যোগ দিন' : 'Join 1000+ satisfied students'}
+           </p>
         </div>
       </section>
 

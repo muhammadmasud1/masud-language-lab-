@@ -102,14 +102,14 @@ const StorePage: React.FC<Props> = ({ lang }) => {
               <div className="w-full lg:w-1/3 aspect-[3/4] overflow-hidden rounded-[2rem] shadow-xl relative shrink-0">
                 <img src={book.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={book.title[lang]} />
               </div>
-              <div className="flex flex-col justify-between flex-grow">
+              <div className="flex flex-col justify-between flex-grow min-w-0">
                 <div>
                   <div className="flex items-center gap-1 text-yellow-500 mb-4">
                     {[1,2,3,4,5].map(s => <Star key={s} className="w-4 h-4 fill-current" />)}
                     <span className="text-[10px] font-black text-zinc-400 ml-3 uppercase tracking-widest">Premium Choice</span>
                   </div>
-                  <h3 className="text-2xl font-black mb-4 group-hover:text-[#C1121F] transition-colors leading-tight">{book.title[lang]}</h3>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-8 leading-relaxed line-clamp-2 font-medium">{book.description[lang]}</p>
+                  <h3 className="text-2xl font-black mb-4 group-hover:text-[#C1121F] transition-colors leading-tight line-clamp-2">{book.title[lang]}</h3>
+                  <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-8 leading-relaxed line-clamp-3 font-medium">{book.description[lang]}</p>
                 </div>
                 <div className="flex items-center justify-between pt-8 border-t border-zinc-100 dark:border-zinc-800 mt-8">
                   <span className="text-3xl font-black text-zinc-900 dark:text-white">৳{book.price}</span>
