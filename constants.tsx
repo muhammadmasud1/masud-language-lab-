@@ -54,7 +54,7 @@ export const COURSES: Course[] = [
     title: { EN: 'HSK 1: Standard Course', BN: 'HSK ১: স্ট্যান্ডার্ড কোর্স' },
     level: 'Beginner',
     duration: '8 Weeks',
-    price: '৳ 1,999',
+    price: '৳ 1,499',
     description: { 
       EN: 'The essential start. Master the Pinyin system and initial 150 Hanzi characters.', 
       BN: 'নতুনদের জন্য আদর্শ শুরু। ১৫০টি মূল শব্দ এবং মৌলিক বাক্য গঠন শিখুন।' 
@@ -67,7 +67,7 @@ export const COURSES: Course[] = [
     title: { EN: 'HSK 2: Standard Course', BN: 'HSK ২: স্ট্যান্ডার্ড কোর্স' },
     level: 'Elementary',
     duration: '10 Weeks',
-    price: '৳ 1,999',
+    price: '৳ 1,499',
     description: { 
       EN: 'Expand your vocabulary. Master 300 words and daily conversations.', 
       BN: 'আপনার দক্ষতা বাড়ান। ৩০০ শব্দ আয়ত্ত করুন এবং দৈনন্দিন কথোপকথন শিখুন।' 
