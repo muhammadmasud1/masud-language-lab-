@@ -95,7 +95,7 @@ const HomePage: React.FC<Props> = ({ lang }) => {
 
             <div className="aspect-[4/5] rounded-[3.5rem] overflow-hidden bg-zinc-100 dark:bg-zinc-900 border-[12px] border-white dark:border-zinc-900 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] relative group">
               <img 
-                src="https://i.ibb.co.com/w3Q2J8G/1000127502.jpg" 
+                src="https://i.ibb.co.com/BVt9KnYL/file-00000000819071fdac0a25375e832d12-2.jpg" 
                 className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-105" 
                 alt="Md. Masud Rana" 
               />

@@ -11,7 +11,7 @@ export const COLORS = {
 export const PAYMENT_INFO = {
   bKash: '01788060657',
   Nagad: '01788060657',
-  Rocket: '01788060657-1',
+  Rocket: '017880606578',
 };
 
 export const NAV_LINKS: NavLink[] = [
