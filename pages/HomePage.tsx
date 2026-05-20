@@ -2,10 +2,11 @@
 import React from 'react';
 import { motion as m, AnimatePresence } from 'framer-motion';
 const motion = m as any;
-import { ArrowRight, Star, GraduationCap, Globe, PenTool, Sparkles, Languages, ChevronRight, Award, CheckCircle2, ShieldCheck, MessageSquare, Book, Briefcase, Activity, Zap } from 'lucide-react';
+import { ArrowRight, Star, GraduationCap, Globe, PenTool, Sparkles, Languages, ChevronRight, ChevronLeft, Award, CheckCircle2, ShieldCheck, MessageSquare, Book, Briefcase, Activity, Zap, Image as ImageIcon } from 'lucide-react';
 import { Language } from '../types';
 import { COURSES, TESTIMONIALS, PREMIUM_SERVICES } from '../constants';
 import { Link } from 'react-router-dom';
+import { dataService } from '../services/dataService';
 
 interface Props { lang: Language; }
 
@@ -65,6 +66,28 @@ const HomePage: React.FC<Props> = ({ lang }) => {
   ];
 
   const [currentSlide, setCurrentSlide] = React.useState(0);
+  const [carouselImages, setCarouselImages] = React.useState<any[]>([]);
+  const [activeCarouselIdx, setActiveCarouselIdx] = React.useState(0);
+
+  React.useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const data = await dataService.getCarouselImages();
+        setCarouselImages(data);
+      } catch (err) {
+        console.error("Error loading carousel:", err);
+      }
+    };
+    fetchImages();
+  }, []);
+
+  React.useEffect(() => {
+    if (carouselImages.length === 0) return;
+    const interval = setInterval(() => {
+      setActiveCarouselIdx((prev) => (prev + 1) % carouselImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [carouselImages.length]);
 
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -290,6 +313,94 @@ const HomePage: React.FC<Props> = ({ lang }) => {
           </div>
         </div>
       </section>
+
+      {/* Dynamic Image Animation Carousel Section */}
+      {carouselImages.length > 0 && (
+        <section className="py-24 px-6 bg-zinc-50 dark:bg-zinc-900/10 border-y border-zinc-100 dark:border-zinc-900">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-red-50 dark:bg-red-950/20 text-[#C1121F] text-[12px] font-black mb-6 border border-red-100 dark:border-red-900/30 uppercase tracking-widest">
+                <ImageIcon className="w-4 h-4" />
+                <span>{lang === 'BN' ? 'আকর্ষণীয় কার্যক্রম গ্যালারি' : 'Interactive Activities Gallery'}</span>
+              </div>
+              <h2 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white mb-6 tracking-tight leading-none">
+                {lang === 'BN' ? 'আমাদের কার্যক্রম গ্যালারি' : 'Our Activities Gallery'}
+              </h2>
+              <p className="text-zinc-500 max-w-xl mx-auto font-medium leading-relaxed">
+                {lang === 'BN' 
+                  ? 'সরাসরি ক্লাস, সম্মেলন দোভাষী সেবা এবং শিক্ষার্থীদের সাফল্যের রঙিন খণ্ডচিত্র।' 
+                  : 'Live classrooms, summit interpretation events, and student milestones on stage.'}
+              </p>
+            </div>
+
+            {/* Slider Viewport */}
+            <div className="relative aspect-[16/9] w-full max-w-5xl mx-auto rounded-[3.5rem] overflow-hidden border-8 border-white dark:border-zinc-900 shadow-2xl bg-zinc-100 dark:bg-zinc-950">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeCarouselIdx}
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.6 }}
+                  className="absolute inset-0 w-full h-full"
+                >
+                  <img 
+                    src={carouselImages[activeCarouselIdx].image} 
+                    alt={carouselImages[activeCarouselIdx].title?.[lang] || "Language Lab Gallery"} 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-8 md:p-12 z-10 flex flex-col justify-end">
+                    {carouselImages[activeCarouselIdx].title && (
+                      <h3 className="text-white text-xl md:text-3xl font-black tracking-tight drop-shadow-md">
+                        {carouselImages[activeCarouselIdx].title[lang]}
+                      </h3>
+                    )}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Navigation Arrows */}
+              <div className="absolute inset-y-0 left-6 right-6 flex items-center justify-between z-20 pointer-events-none">
+                <button 
+                  onClick={() => setActiveCarouselIdx((prev) => (prev - 1 + carouselImages.length) % carouselImages.length)}
+                  className="w-14 h-14 rounded-full bg-white/90 dark:bg-zinc-900/90 hover:bg-[#C1121F] hover:text-white dark:hover:bg-[#C1121F] text-zinc-800 dark:text-white flex items-center justify-center shadow-lg active:scale-95 transition-all pointer-events-auto"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button 
+                  onClick={() => setActiveCarouselIdx((prev) => (prev + 1) % carouselImages.length)}
+                  className="w-14 h-14 rounded-full bg-white/90 dark:bg-zinc-900/90 hover:bg-[#C1121F] hover:text-white dark:hover:bg-[#C1121F] text-zinc-800 dark:text-white flex items-center justify-center shadow-lg active:scale-95 transition-all pointer-events-auto"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Top Right Counter Badge */}
+              <div className="absolute top-6 right-6 bg-black/50 backdrop-blur-md px-4 py-2 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest border border-white/10 z-20">
+                {activeCarouselIdx + 1} / {carouselImages.length}
+              </div>
+            </div>
+
+            {/* Thumbnail Navigation Indicators */}
+            <div className="flex justify-center flex-wrap gap-4 mt-8 max-w-4xl mx-auto">
+              {carouselImages.map((item, idx) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveCarouselIdx(idx)}
+                  className={`w-20 h-12 rounded-xl overflow-hidden border-2 transition-all p-0.5 relative group ${
+                    activeCarouselIdx === idx 
+                      ? 'border-[#C1121F] scale-110 shadow-lg shadow-red-500/10' 
+                      : 'border-zinc-200 dark:border-zinc-800 opacity-60 hover:opacity-100 hover:scale-105'
+                  }`}
+                >
+                  <img src={item.image} className="w-full h-full object-cover rounded-lg" alt="" />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Live Lab Promotion Section */}
       <section className="py-24 px-6 bg-white dark:bg-zinc-950 overflow-hidden relative">

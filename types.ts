@@ -136,3 +136,10 @@ export interface PlatformStats {
   totalArticles: number;
   totalRevenue: string;
 }
+
+export interface CarouselImage {
+  id: string;
+  image: string;
+  title?: Record<Language, string>;
+  order?: number;
+}

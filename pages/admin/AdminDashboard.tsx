@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, BookOpen, Plus, LogOut, Edit3, Trash2, 
   Wallet, List, ShoppingBag, Book as BookIcon, Sparkles, FilePlus, Video, X, Save,
-  CheckCircle, AlertCircle, RefreshCcw, Database, MessageSquare, Star
+  CheckCircle, AlertCircle, RefreshCcw, Database, MessageSquare, Star, Image as ImageIcon
 } from 'lucide-react';
-import { Language, Course, Article, Enrollment, BookOrder, Book, QuizQuestion, Lesson, Review } from '../../types';
+import { Language, Course, Article, Enrollment, BookOrder, Book, QuizQuestion, Lesson, Review, CarouselImage } from '../../types';
 import { dataService } from '../../services/dataService';
 
 import { auth } from '../../services/firebase';
@@ -14,7 +14,7 @@ import { signOut } from 'firebase/auth';
 
 interface Props { lang: Language; setUser: (user: any) => void; }
 
-type Tab = 'overview' | 'courses' | 'lessons' | 'enrollments' | 'books' | 'blog' | 'quiz' | 'reviews';
+type Tab = 'overview' | 'courses' | 'lessons' | 'enrollments' | 'books' | 'blog' | 'quiz' | 'reviews' | 'carousel';
 
 const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
@@ -29,6 +29,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
   const [localBookOrders, setLocalBookOrders] = useState<BookOrder[]>([]);
   const [localQuizQuestions, setLocalQuizQuestions] = useState<QuizQuestion[]>([]);
   const [localReviews, setLocalReviews] = useState<Review[]>([]);
+  const [localCarousel, setLocalCarousel] = useState<CarouselImage[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -49,7 +50,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
   const loadAllData = async () => {
     setIsLoading(true);
     try {
-      const [courses, articles, books, lessons, enrollments, orders, quiz, reviews] = await Promise.all([
+      const [courses, articles, books, lessons, enrollments, orders, quiz, reviews, carousel] = await Promise.all([
         dataService.getCourses(),
         dataService.getArticles(),
         dataService.getBooks(),
@@ -57,7 +58,8 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
         dataService.getEnrollments(),
         dataService.getBookOrders(),
         dataService.getQuizQuestions(),
-        dataService.getReviews()
+        dataService.getReviews(),
+        dataService.getCarouselImages()
       ]);
       
       setLocalCourses(courses);
@@ -68,6 +70,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
       setLocalBookOrders(orders);
       setLocalQuizQuestions(quiz);
       setLocalReviews(reviews);
+      setLocalCarousel(carousel);
     } catch (err) {
       showStatus('error', 'ডাটা লোড করতে সমস্যা হয়েছে।');
     } finally {
@@ -95,6 +98,7 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
       if (type === 'quiz') await dataService.deleteQuizQuestion(id);
       if (type === 'reviews') await dataService.deleteReview(id);
       if (type === 'enrollments') await dataService.deleteEnrollment(id);
+      if (type === 'carousel') await dataService.deleteCarouselImage(id);
       await loadAllData();
       showStatus('success', 'সফলভাবে মুছে ফেলা হয়েছে');
     } catch (err) {
@@ -217,6 +221,24 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
         };
         console.log('Saving review data:', data);
         await dataService.saveReview(data);
+      } else if (activeTab === 'carousel') {
+        let imageUrl = editingItem?.image || f.get('image') as string || '';
+        if (selectedFile) {
+          imageUrl = await dataService.uploadImage(selectedFile, 'reviews');
+        }
+        if (!imageUrl) {
+          throw new Error("Image is required");
+        }
+        const data: CarouselImage = {
+          id: editingItem?.id || 'carousel-' + Date.now(),
+          image: imageUrl,
+          title: {
+            EN: f.get('title_en') as string || '',
+            BN: f.get('title_bn') as string || ''
+          },
+          order: parseInt(f.get('order') as string) || 99
+        };
+        await dataService.saveCarouselImage(data);
       }
 
       await loadAllData();
@@ -257,7 +279,8 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
           { id: 'orders', icon: ShoppingBag, label: 'Book Orders' },
           { id: 'blog', icon: FilePlus, label: 'Blog' },
           { id: 'quiz', icon: Sparkles, label: 'Quiz' },
-          { id: 'reviews', icon: MessageSquare, label: 'Reviews' }
+          { id: 'reviews', icon: MessageSquare, label: 'Reviews' },
+          { id: 'carousel', icon: ImageIcon, label: 'Home Carousel' }
         ].map(item => (
           <button key={item.id} onClick={() => setActiveTab(item.id as Tab)} className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl font-bold text-xs transition-all ${activeTab === item.id ? 'bg-[#C1121F] text-white shadow-lg' : 'text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}>
             <item.icon className="w-5 h-5" /> {item.label}
@@ -403,12 +426,20 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                   activeTab === 'lessons' ? localLessons : 
                   activeTab === 'books' ? localBooks : 
                   activeTab === 'blog' ? localArticles : 
-                  activeTab === 'reviews' ? localReviews : localQuizQuestions).map((item: any) => (
+                  activeTab === 'reviews' ? localReviews : 
+                  activeTab === 'carousel' ? localCarousel : localQuizQuestions).map((item: any) => (
                   <tr key={item.id} className="text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                    <td className="px-8 py-5 font-bold text-zinc-900 dark:text-zinc-100">
-                      {item.title?.EN || item.title || item.question || item.userName || (item.content?.EN ? item.content.EN.substring(0, 30) + '...' : 'Review')}
+                    <td className="px-8 py-5 font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-4">
+                      {activeTab === 'carousel' && (
+                        <img src={item.image} className="w-12 h-8 object-cover rounded" alt="" />
+                      )}
+                      <span>
+                        {item.title?.EN || item.title || item.question || item.userName || (item.content?.EN ? item.content.EN.substring(0, 30) + '...' : 'Review')}
+                      </span>
                     </td>
-                    <td className="px-8 py-5 text-zinc-400">{item.price ? `৳${item.price}` : (item.courseId || item.category || (item.rating ? `${item.rating} Stars` : 'Quiz'))}</td>
+                    <td className="px-8 py-5 text-zinc-400">
+                      {activeTab === 'carousel' ? `Order: ${item.order || 0}` : (item.price ? `৳${item.price}` : (item.courseId || item.category || (item.rating ? `${item.rating} Stars` : 'Quiz')))}
+                    </td>
                     <td className="px-8 py-5 text-right space-x-2">
                       <button onClick={() => { setEditingItem(item); setIsModalOpen(true); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit3 className="w-4 h-4" /></button>
                       <button onClick={() => handleDelete(item.id, activeTab)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
@@ -537,6 +568,31 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                         <option value="published">Published</option>
                         <option value="draft">Draft</option>
                       </select>
+                    </div>
+                  </div>
+                )}
+                {activeTab === 'carousel' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                      <Input name="title_en" label="Slide Caption (EN)" val={editingItem?.title?.EN} required={false} />
+                      <Input name="title_bn" label="Slide Caption (BN)" val={editingItem?.title?.BN} required={false} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <Input name="image" label="Direct Image URL (Optional)" val={editingItem?.image} required={false} />
+                      <Input name="order" label="Sort Order" type="number" val={editingItem?.order !== undefined ? editingItem?.order : 1} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Upload Slide Image File (Preferred)</label>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                        required={!editingItem?.image}
+                        className="w-full bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-[#C1121F] rounded-2xl px-6 py-4 outline-none font-bold"
+                      />
+                      {editingItem?.image && !selectedFile && (
+                        <p className="text-[9px] text-zinc-400 ml-1 italic">Current file: {editingItem.image.substring(0, 50)}...</p>
+                      )}
                     </div>
                   </div>
                 )}

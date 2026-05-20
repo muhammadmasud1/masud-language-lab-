@@ -1,5 +1,5 @@
 
-import { Course, Book, Article, Lesson, QuizQuestion, Enrollment, BookOrder, User, Review } from '../types';
+import { Course, Book, Article, Lesson, QuizQuestion, Enrollment, BookOrder, User, Review, CarouselImage } from '../types';
 import { supabase } from './supabaseClient';
 
 export const dataService = {
@@ -277,5 +277,123 @@ export const dataService = {
       .getPublicUrl(filePath);
 
     return data.publicUrl;
+  },
+
+  // --- Carousel Images ---
+  getCarouselImages: async (): Promise<CarouselImage[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('carousel_images')
+        .select('*')
+        .order('order', { ascending: true });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      if (data && data.length > 0) {
+        return data as CarouselImage[];
+      }
+    } catch (err) {
+      console.warn("Supabase carousel_images query failed/table not found, using localStorage & default fallback:", err);
+    }
+    
+    // Fallback to localStorage
+    const saved = localStorage.getItem('masud_carousel_images');
+    if (saved) {
+      try {
+        return JSON.parse(saved) as CarouselImage[];
+      } catch (e) {
+        console.error("Parsed local storage carousel error:", e);
+      }
+    }
+    return DEFAULT_CAROUSEL_IMAGES;
+  },
+
+  saveCarouselImage: async (imageItem: CarouselImage): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('carousel_images')
+        .upsert([imageItem]);
+      
+      if (!error) return true;
+      throw new Error(error.message);
+    } catch (err) {
+      console.warn("Supabase save carousel image failed, using localStorage fallback:", err);
+    }
+
+    // LocalStorage Fallback
+    try {
+      const current = await dataService.getCarouselImages();
+      const existsIdx = current.findIndex(item => item.id === imageItem.id);
+      if (existsIdx >= 0) {
+        current[existsIdx] = imageItem;
+      } else {
+        current.push(imageItem);
+      }
+      current.sort((a, b) => (a.order || 0) - (b.order || 0));
+      localStorage.setItem('masud_carousel_images', JSON.stringify(current));
+      return true;
+    } catch (e) {
+      console.error("Local save carousel error:", e);
+      return false;
+    }
+  },
+
+  deleteCarouselImage: async (id: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('carousel_images')
+        .delete()
+        .eq('id', id);
+      
+      if (!error) return true;
+      throw new Error(error.message);
+    } catch (err) {
+      console.warn("Supabase delete carousel image failed, using localStorage fallback:", err);
+    }
+
+    // LocalStorage Fallback
+    try {
+      const current = await dataService.getCarouselImages();
+      const filtered = current.filter(item => item.id !== id);
+      localStorage.setItem('masud_carousel_images', JSON.stringify(filtered));
+      return true;
+    } catch (e) {
+      console.error("Local delete carousel error:", e);
+      return false;
+    }
   }
 };
+
+const DEFAULT_CAROUSEL_IMAGES: CarouselImage[] = [
+  {
+    id: 'default-1',
+    image: 'https://i.ibb.co.com/BVt9KnYL/file-00000000819071fdac0a25375e832d12-2.jpg',
+    title: { EN: 'Practical Classrooms', BN: 'বাস্তবমুখী পাঠদান' },
+    order: 1
+  },
+  {
+    id: 'default-2',
+    image: 'https://i.ibb.co.com/YTZ3mxcV/Whats-App-Image-2026-05-19-at-10-21-51-PM.jpg',
+    title: { EN: 'Professional Translation Services', BN: 'পেশাদার অনুবাদসেবা ও সফল কার্যক্রম' },
+    order: 2
+  },
+  {
+    id: 'default-3',
+    image: 'https://images.unsplash.com/photo-1544640808-32ca72ac7f37?auto=format&fit=crop&q=80&w=1200',
+    title: { EN: 'High Quality Academic Books', BN: 'উচ্চমানের ডিকশনারি ও বইসমূহ' },
+    order: 3
+  },
+  {
+    id: 'default-4',
+    image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=1200',
+    title: { EN: 'Advanced Translation & Interpreting Summit', BN: 'উচ্চপর্যায়ের কারিগরি অনুবাদ সামিট' },
+    order: 4
+  },
+  {
+    id: 'default-5',
+    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1200',
+    title: { EN: 'Direct Communication Practice', BN: 'সহজ ও সাবলীল যোগাযোগ কৌশল' },
+    order: 5
+  }
+];
