@@ -274,7 +274,7 @@ const AIChatbot: React.FC<Props> = ({ lang }) => {
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed bottom-24 right-6 z-[60] w-[calc(100vw-3rem)] sm:w-[420px] h-[600px] max-h-[80vh] bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden"
+            className="fixed bottom-40 right-6 z-[60] w-[calc(100vw-3rem)] sm:w-[420px] h-[600px] max-h-[calc(100vh-11rem)] bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="p-6 bg-[#C1121F] text-white flex justify-between items-center">

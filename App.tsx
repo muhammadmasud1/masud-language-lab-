@@ -33,6 +33,7 @@ import ProfilePage from './pages/ProfilePage';
 import ReviewPage from './pages/ReviewPage';
 import AIChatbot from './components/AIChatbot';
 import CustomCursor from './components/CustomCursor';
+import SocialButtons from './components/SocialButtons';
 
 import { auth } from './services/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -321,6 +322,7 @@ const App: React.FC = () => {
         </main>
 
         <AIChatbot lang={lang} />
+        <SocialButtons lang={lang} />
         
         {/* Mobile Menu Overlay & Slide-in Drawer */}
         <AnimatePresence>
