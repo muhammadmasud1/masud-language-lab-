@@ -11,6 +11,7 @@ import { Language, User, Course, Enrollment } from '../types';
 import { COURSES, PAYMENT_INFO } from '../constants';
 import { notifyAdminOfPayment } from '../services/geminiService';
 import { dataService } from '../services/dataService';
+import { formatBdtPrice, formatUsdPrice, toBanglaDigits } from '../services/currencyService';
 
 interface Props {
   lang: Language;
@@ -133,9 +134,16 @@ const CheckoutPage: React.FC<Props> = ({ lang, user }) => {
             <h2 className="text-2xl font-bold mb-2">{course.title[lang]}</h2>
             <p className="text-sm text-zinc-500 mb-6">{course.level} • {course.duration}</p>
             <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800">
-              <div className="flex justify-between items-center text-xl font-bold">
-                <span>Total</span>
-                <span className="text-[#C1121F]">৳{course.price}</span>
+              <div className="flex justify-between items-baseline">
+                <span className="font-bold text-zinc-600 dark:text-zinc-300">Total</span>
+                <div className="text-right">
+                  <span className="text-2xl font-black text-[#C1121F] block">
+                    {formatUsdPrice(Number(course.price))}
+                  </span>
+                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400 font-sans">
+                    🇧🇩 {formatBdtPrice(Number(course.price), true)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -150,7 +158,7 @@ const CheckoutPage: React.FC<Props> = ({ lang, user }) => {
             </h3>
 
             {/* Payment Method Selector */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
               {(['bKash', 'Nagad', 'Rocket'] as const).map(method => (
                 <button
                   key={method}
@@ -173,10 +181,21 @@ const CheckoutPage: React.FC<Props> = ({ lang, user }) => {
               ))}
             </div>
 
-            {/* Payment Instructions */}
+            {/* Payment Instructions with Bangladeshi BDT Price */}
             <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-3xl border border-dashed border-zinc-300 dark:border-zinc-700 mb-12 text-center">
-              <p className="text-lg font-bold mb-2">
-                নির্ধারিত নাম্বারে টাকা পাঠিয়ে নিচে প্রয়োজনীয় তথ্য দিন
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl mb-4 inline-block px-6">
+                <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block">
+                  🇧🇩 বাংলাদেশি শিক্ষার্থীদের জন্য প্রদেয় ফি (BDT Course Fee):
+                </span>
+                <span className="text-2xl font-black text-slate-900 dark:text-white font-sans">
+                  {formatBdtPrice(Number(course.price), true)}
+                </span>
+                <span className="text-xs text-zinc-500 ml-2">
+                  (~ {formatUsdPrice(Number(course.price))} USD)
+                </span>
+              </div>
+              <p className="text-sm font-bold mb-2">
+                Send Money to the {paymentMethod} Personal Number below:
               </p>
               <div className="text-3xl font-black text-[#C1121F] tracking-widest chinese-font mb-4">
                 {PAYMENT_INFO[paymentMethod as keyof typeof PAYMENT_INFO]}

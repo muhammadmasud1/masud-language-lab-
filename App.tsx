@@ -14,12 +14,10 @@ import { NAV_LINKS } from './constants';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import CoursesPage from './pages/CoursesPage';
-import LearnPage from './pages/LearnPage';
 import StorePage from './pages/StorePage';
-import BlogPage from './pages/BlogPage';
-import InterpreterPage from './pages/InterpreterPage';
+import PdfDetailPage from './pages/PdfDetailPage';
+import PdfCheckoutPage from './pages/PdfCheckoutPage';
 import ContactPage from './pages/ContactPage';
-import LiveLabPage from './pages/LiveLabPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -32,7 +30,6 @@ import QuizPage from './pages/QuizPage';
 import ProfilePage from './pages/ProfilePage';
 import ReviewPage from './pages/ReviewPage';
 import AIChatbot from './components/AIChatbot';
-import CustomCursor from './components/CustomCursor';
 import SocialButtons from './components/SocialButtons';
 
 import { auth } from './services/firebase';
@@ -49,7 +46,10 @@ const ScrollToTop = ({ closeMenu }: { closeMenu: () => void }) => {
 };
 
 const App: React.FC = () => {
-  const [lang, setLang] = useState<Language>('BN');
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = localStorage.getItem('lang');
+    return saved === 'BN' ? 'EN' : 'EN';
+  });
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('huayu_theme');
     if (saved) return saved === 'dark';
@@ -149,7 +149,6 @@ const App: React.FC = () => {
     <Router>
       <ScrollToTop closeMenu={closeMobileMenu} />
       <div className="min-h-screen flex flex-col bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-500">
-        <CustomCursor />
         
         {/* Modern Sticky Navbar */}
         <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
@@ -194,15 +193,9 @@ const App: React.FC = () => {
               {/* Actions */}
               <div className="flex items-center gap-3 relative z-[60] shrink-0">
                 <button 
-                  onClick={toggleLang} 
-                  className="p-2.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 items-center gap-2 text-[12px] font-black uppercase tracking-widest transition-all text-zinc-600 dark:text-zinc-300 flex"
-                >
-                  <Globe className="w-4 h-4 text-zinc-400" /> {lang}
-                </button>
-
-                <button 
                   onClick={() => setDarkMode(!darkMode)} 
                   className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-[#C1121F] transition-all"
+                  aria-label="Toggle theme"
                 >
                   {darkMode ? <Sun className="w-4.5 h-4.5 text-gold" /> : <Moon className="w-4.5 h-4.5 text-zinc-400" />}
                 </button>
@@ -299,13 +292,15 @@ const App: React.FC = () => {
         <main className="flex-grow pt-24 transition-all">
           <Routes>
             <Route path="/" element={<HomePage lang={lang} />} />
+            <Route path="/store" element={<StorePage lang={lang} />} />
             <Route path="/about" element={<AboutPage lang={lang} />} />
             <Route path="/courses" element={<CoursesPage lang={lang} user={currentUser} />} />
-            <Route path="/learn" element={<LearnPage lang={lang} />} />
-            <Route path="/store" element={<StorePage lang={lang} />} />
-            <Route path="/blog" element={<BlogPage lang={lang} />} />
-            <Route path="/interpreter" element={<InterpreterPage lang={lang} />} />
-            <Route path="/live-lab" element={<LiveLabPage lang={lang} />} />
+            <Route path="/learn" element={<Navigate to="/store" replace />} />
+            <Route path="/pdf/:slug" element={<PdfDetailPage lang={lang} user={currentUser} />} />
+            <Route path="/pdf-checkout" element={<PdfCheckoutPage lang={lang} user={currentUser} />} />
+            <Route path="/blog" element={<Navigate to="/store" replace />} />
+            <Route path="/interpreter" element={<Navigate to="/store" replace />} />
+            <Route path="/live-lab" element={<Navigate to="/store" replace />} />
             <Route path="/contact" element={<ContactPage lang={lang} />} />
             <Route path="/login" element={<LoginPage lang={lang} setUser={setCurrentUser} />} />
             <Route path="/admin/login" element={<AdminLoginPage lang={lang} setUser={setCurrentUser} />} />
@@ -415,7 +410,8 @@ const App: React.FC = () => {
         <footer className="bg-zinc-950 py-20 border-t border-zinc-800">
           <div className="max-w-7xl mx-auto px-6 text-center">
              <div className="w-12 h-12 bg-[#C1121F] rounded-2xl flex items-center justify-center text-white font-black text-xl chinese-font mb-6 mx-auto">华</div>
-             <p className="text-zinc-500 mb-4 tracking-widest uppercase text-[10px] font-black">Connecting Bangladesh & China</p>
+             <p className="text-zinc-200 mb-1 font-black text-sm tracking-wide">MandarinShelf by Masud Language Lab</p>
+             <p className="text-zinc-500 mb-4 tracking-widest uppercase text-[10px] font-black">Your Digital Shelf for Learning Chinese • Connecting Bangladesh & China</p>
              <p className="text-zinc-600 text-[11px] uppercase font-black tracking-[0.4em]">© {new Date().getFullYear()} Masud Language Lab</p>
           </div>
         </footer>

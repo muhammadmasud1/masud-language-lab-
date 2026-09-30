@@ -6,6 +6,8 @@ import { Clock, BarChart, CheckCircle2, LayoutDashboard } from 'lucide-react';
 import { Language, User, Course } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { dataService } from '../services/dataService';
+import PriceDisplay from '../components/PriceDisplay';
+import { getStoredCurrency } from '../services/currencyService';
 
 interface Props { 
   lang: Language; 
@@ -83,7 +85,13 @@ const CoursesPage: React.FC<Props> = ({ lang, user }) => {
                   <div className="flex items-center gap-3 text-xs font-bold uppercase text-zinc-400"><BarChart className="w-4 h-4 text-[#C1121F]" /><span>HSK Certified</span></div>
                 </div>
                 <div className="flex items-center justify-between pt-8 border-t border-zinc-100 dark:border-zinc-800">
-                  <span className="text-2xl font-black text-[#C1121F]">৳{course.price}</span>
+                  <PriceDisplay 
+                    amountInBdt={Number(course.price)}
+                    preferredCurrency={getStoredCurrency()}
+                    showDual={true}
+                    showBdBadge={true}
+                    size="lg"
+                  />
                   {isEnrolled ? (
                     <button onClick={() => navigate('/dashboard')} className="px-6 py-4 bg-zinc-900 dark:bg-zinc-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2"><LayoutDashboard className="w-4 h-4" /> Start Learning</button>
                   ) : (
