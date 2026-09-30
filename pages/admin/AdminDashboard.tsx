@@ -4,7 +4,7 @@ import {
   LayoutDashboard, BookOpen, Plus, LogOut, Edit3, Trash2, 
   Wallet, List, ShoppingBag, Book as BookIcon, Sparkles, FilePlus, Video, X, Save,
   CheckCircle, AlertCircle, RefreshCcw, Database, MessageSquare, Star, Image as ImageIcon,
-  CheckCircle2, XCircle, Eye, ShieldCheck, DollarSign, Settings, BarChart3, TrendingUp, Layers
+  CheckCircle2, XCircle, Eye, ShieldCheck, DollarSign, Settings, BarChart3, TrendingUp, Layers, Check
 } from 'lucide-react';
 import { 
   Language, Course, Article, Enrollment, BookOrder, Book, QuizQuestion, 
@@ -54,6 +54,10 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
   const [localPdfProducts, setLocalPdfProducts] = useState<PdfProduct[]>([]);
   const [pdfSettings, setPdfSettings] = useState<PdfPaymentSettings | null>(null);
   const [pdfAnalytics, setPdfAnalytics] = useState<any>(null);
+
+  // Order Filtering & Search
+  const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'paid' | 'rejected'>('all');
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
 
   // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -435,26 +439,118 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
         </header>
 
         {/* ========================================== */}
-        {/* TAB: PDF ORDERS */}
+        {/* TAB: PDF ORDERS & PAYMENT VERIFICATION */}
         {/* ========================================== */}
-        {activeTab === 'pdfOrders' && (
+        {activeTab === 'pdfOrders' && (() => {
+          const filteredPdfOrders = localPdfOrders.filter(order => {
+            if (orderStatusFilter === 'pending') {
+              const isPending = order.status === 'payment_submitted' || order.status === 'pending' || order.status === 'under_review';
+              if (!isPending) return false;
+            } else if (orderStatusFilter === 'paid') {
+              if (order.status !== 'paid') return false;
+            } else if (orderStatusFilter === 'rejected') {
+              if (order.status !== 'rejected') return false;
+            }
+
+            if (orderSearchQuery.trim()) {
+              const q = orderSearchQuery.toLowerCase();
+              const matches = 
+                order.orderId.toLowerCase().includes(q) ||
+                order.customerName.toLowerCase().includes(q) ||
+                order.email.toLowerCase().includes(q) ||
+                (order.senderNumber && order.senderNumber.toLowerCase().includes(q)) ||
+                order.transactionId.toLowerCase().includes(q) ||
+                order.productTitle.toLowerCase().includes(q);
+              if (!matches) return false;
+            }
+
+            return true;
+          });
+
+          return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <span className="text-xs font-bold text-zinc-400 uppercase">Pending Review</span>
+              <div 
+                onClick={() => setOrderStatusFilter('pending')}
+                className={`p-5 rounded-2xl border cursor-pointer transition shadow-sm ${
+                  orderStatusFilter === 'pending'
+                    ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/30'
+                    : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800'
+                }`}
+              >
+                <span className="text-xs font-bold text-zinc-400 uppercase">⏳ Pending Verification</span>
                 <p className="text-3xl font-black text-amber-500 mt-1">{pendingPdfOrdersCount}</p>
+                <p className="text-[10px] text-zinc-400 mt-1">Requires manual check of TrxID</p>
               </div>
-              <div className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <span className="text-xs font-bold text-zinc-400 uppercase">Paid / Approved</span>
+              <div 
+                onClick={() => setOrderStatusFilter('paid')}
+                className={`p-5 rounded-2xl border cursor-pointer transition shadow-sm ${
+                  orderStatusFilter === 'paid'
+                    ? 'bg-emerald-500/10 border-emerald-500 ring-2 ring-emerald-500/30'
+                    : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800'
+                }`}
+              >
+                <span className="text-xs font-bold text-zinc-400 uppercase">✅ Paid & Approved</span>
                 <p className="text-3xl font-black text-emerald-500 mt-1">
                   {localPdfOrders.filter(o => o.status === 'paid').length}
                 </p>
+                <p className="text-[10px] text-zinc-400 mt-1">eBooks unlocked in student library</p>
               </div>
-              <div className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <span className="text-xs font-bold text-zinc-400 uppercase">Total eBook Revenue</span>
+              <div 
+                onClick={() => setOrderStatusFilter('all')}
+                className={`p-5 rounded-2xl border cursor-pointer transition shadow-sm ${
+                  orderStatusFilter === 'all'
+                    ? 'bg-red-500/10 border-red-500 ring-2 ring-red-500/30'
+                    : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800'
+                }`}
+              >
+                <span className="text-xs font-bold text-zinc-400 uppercase">💰 Verified eBook Revenue</span>
                 <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">
                   ৳ {localPdfOrders.filter(o => o.status === 'paid').reduce((s, o) => s + (o.amount || 0), 0)}
                 </p>
+                <p className="text-[10px] text-zinc-400 mt-1">{localPdfOrders.length} total orders placed</p>
+              </div>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+              <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+                {[
+                  { id: 'all', label: `All Orders (${localPdfOrders.length})` },
+                  { id: 'pending', label: `⏳ Pending (${pendingPdfOrdersCount})` },
+                  { id: 'paid', label: `✅ Approved (${localPdfOrders.filter(o => o.status === 'paid').length})` },
+                  { id: 'rejected', label: `❌ Rejected (${localPdfOrders.filter(o => o.status === 'rejected').length})` },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setOrderStatusFilter(tab.id as any)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                      orderStatusFilter === tab.id
+                        ? 'bg-[#C1121F] text-white shadow-sm'
+                        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative w-full sm:w-80">
+                <input 
+                  type="text"
+                  value={orderSearchQuery}
+                  onChange={e => setOrderSearchQuery(e.target.value)}
+                  placeholder="Search by TrxID, Name, Phone..."
+                  className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-medium focus:outline-none focus:border-[#C1121F]"
+                />
+                {orderSearchQuery && (
+                  <button 
+                    onClick={() => setOrderSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 text-xs"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             </div>
 
@@ -470,18 +566,20 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                       <th className="px-6 py-4">Method & Sender</th>
                       <th className="px-6 py-4">TrxID / Hash</th>
                       <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4 text-right">Actions</th>
+                      <th className="px-6 py-4 text-right">Verification Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                    {localPdfOrders.length === 0 ? (
+                    {filteredPdfOrders.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="text-center py-12 text-zinc-400">
-                          No PDF eBook orders yet.
+                          {orderSearchQuery || orderStatusFilter !== 'all' 
+                            ? 'No orders match your filter/search.' 
+                            : 'No PDF eBook orders yet.'}
                         </td>
                       </tr>
                     ) : (
-                      localPdfOrders.map(order => (
+                      filteredPdfOrders.map(order => (
                         <tr key={order.orderId} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition">
                           <td className="px-6 py-4 font-mono font-bold text-red-500">
                             {order.orderId}
@@ -499,27 +597,27 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                           <td className="px-6 py-4">
                             <span className="font-bold">{order.paymentMethod}</span>
                             {order.senderNumber && (
-                              <p className="text-[10px] text-zinc-400 font-mono">{order.senderNumber}</p>
+                              <p className="text-[10px] text-zinc-400 font-mono font-bold">{order.senderNumber}</p>
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            <code className="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-[11px] font-mono font-bold text-red-500">
+                            <code className="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-[11px] font-mono font-bold text-red-500 select-all">
                               {order.transactionId}
                             </code>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase inline-flex items-center gap-1 ${
                               order.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400' :
                               order.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400' :
-                              'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'
+                              'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400 animate-pulse'
                             }`}>
-                              {order.status}
+                              {order.status === 'paid' ? '✓ Verified' : order.status === 'rejected' ? '✕ Rejected' : '⏳ Pending'}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right space-x-2">
                             <button
                               onClick={() => setViewingOrder(order)}
-                              className="px-2.5 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-bold transition"
+                              className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-bold transition"
                               title="View details / screenshot"
                             >
                               View
@@ -527,10 +625,11 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
                             {order.status !== 'paid' && (
                               <button
                                 onClick={() => handleApprovePdfOrder(order.orderId)}
-                                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition shadow-sm"
-                                title="Approve & grant access"
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition shadow-sm inline-flex items-center gap-1"
+                                title="Verify payment and unlock eBook"
                               >
-                                Approve
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Verify & Approve</span>
                               </button>
                             )}
                             {order.status !== 'rejected' && (
@@ -551,7 +650,8 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* ========================================== */}
         {/* TAB: PDF PRODUCTS MANAGEMENT */}
