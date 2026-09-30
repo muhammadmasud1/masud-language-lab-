@@ -135,15 +135,17 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
 
   // PDF Order Actions
   const handleApprovePdfOrder = async (orderId: string) => {
-    setIsLoading(true);
+    // 1. Instant Optimistic State Update for 0ms delay
+    setLocalPdfOrders(prev => prev.map(o => o.orderId === orderId ? { ...o, status: 'paid', approvedAt: new Date().toISOString() } : o));
+    showStatus('success', 'পেমেন্ট সফলভাবে ভেরিফাই ও অনুমোদিত হয়েছে! বইটি ইউজারের "My Books" এ উন্মুক্ত করা হয়েছে।');
+
+    // 2. Background persistence & purchase granting
     try {
       await pdfService.updatePdfOrderStatus(orderId, 'paid');
-      showStatus('success', 'পেমেন্ট সফলভাবে ভেরিফাই ও অনুমোদিত হয়েছে! বইটি ইউজারের "My Books" এ উন্মুক্ত করা হয়েছে।');
-      await loadAllData();
+      const latestOrders = await pdfService.getPdfOrders();
+      setLocalPdfOrders(latestOrders);
     } catch (err) {
-      showStatus('error', 'পেমেন্ট অনুমোদন করা যায়নি।');
-    } finally {
-      setIsLoading(false);
+      console.error("Approve order background error:", err);
     }
   };
 
@@ -154,16 +156,20 @@ const AdminDashboard: React.FC<Props> = ({ lang, setUser }) => {
 
   const handleConfirmRejectPdfOrder = async () => {
     if (!rejectionModalOrder) return;
-    setIsLoading(true);
+    const targetId = rejectionModalOrder.orderId;
+    
+    // 1. Instant Optimistic State Update
+    setLocalPdfOrders(prev => prev.map(o => o.orderId === targetId ? { ...o, status: 'rejected', rejectionReason: rejectionReasonText.trim() } : o));
+    showStatus('success', 'পেমেন্ট বাতিল করা হয়েছে এবং কারণ সংরক্ষণ করা হয়েছে।');
+    setRejectionModalOrder(null);
+
+    // 2. Background persistence
     try {
-      await pdfService.updatePdfOrderStatus(rejectionModalOrder.orderId, 'rejected', rejectionReasonText.trim());
-      showStatus('success', 'পেমেন্ট বাতিল করা হয়েছে এবং কারণ সংরক্ষণ করা হয়েছে।');
-      setRejectionModalOrder(null);
-      await loadAllData();
+      await pdfService.updatePdfOrderStatus(targetId, 'rejected', rejectionReasonText.trim());
+      const latestOrders = await pdfService.getPdfOrders();
+      setLocalPdfOrders(latestOrders);
     } catch (err) {
-      showStatus('error', 'পেমেন্ট বাতিল করতে ব্যর্থ হয়েছে।');
-    } finally {
-      setIsLoading(false);
+      console.error("Reject order background error:", err);
     }
   };
 
