@@ -105,6 +105,18 @@ const PdfDetailPage: React.FC<Props> = ({ lang, user }) => {
 
   const handleBuyNow = () => {
     if (!product) return;
+    if (!user) {
+      navigate('/login', {
+        state: {
+          redirectTo: '/pdf-checkout',
+          checkoutState: { product },
+          checkoutMessage: lang === 'EN' 
+            ? 'Please log in to purchase this eBook and unlock instant delivery.' 
+            : 'বইটি কেনার জন্য দয়া করে আগে আপনার একাউন্টে লগইন করুন।'
+        }
+      });
+      return;
+    }
     navigate('/pdf-checkout', { state: { product } });
   };
 
@@ -494,6 +506,7 @@ const PdfDetailPage: React.FC<Props> = ({ lang, user }) => {
         onRemove={handleRemoveFromCart}
         onClear={() => { setCart([]); localStorage.removeItem('mandarinshelf_cart'); }}
         lang={lang}
+        user={user}
       />
     </div>
   );

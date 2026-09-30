@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Trash2, ShoppingBag, ArrowRight, Tag, ShieldCheck, Check, Sparkles 
 } from 'lucide-react';
-import { PdfProduct, Language } from '../types';
+import { PdfProduct, Language, User } from '../types';
 import { useNavigate } from 'react-router-dom';
 import PriceDisplay from './PriceDisplay';
 import { formatBdtPrice, formatUsdPrice, toBanglaDigits, getStoredCurrency } from '../services/currencyService';
@@ -15,6 +15,7 @@ interface Props {
   onRemove: (productId: string) => void;
   onClear: () => void;
   lang: Language;
+  user?: User | null;
 }
 
 const VALID_COUPONS: { [code: string]: number } = {
@@ -23,7 +24,7 @@ const VALID_COUPONS: { [code: string]: number } = {
   'NEWUSER': 15,
 };
 
-const PdfCartDrawer: React.FC<Props> = ({ isOpen, onClose, cart, onRemove, onClear, lang }) => {
+const PdfCartDrawer: React.FC<Props> = ({ isOpen, onClose, cart, onRemove, onClear, lang, user }) => {
   const navigate = useNavigate();
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; percent: number } | null>(null);
@@ -50,14 +51,27 @@ const PdfCartDrawer: React.FC<Props> = ({ isOpen, onClose, cart, onRemove, onCle
 
   const handleCheckout = () => {
     onClose();
-    navigate('/pdf-checkout', { 
-      state: { 
-        cartItems: cart, 
-        coupon: appliedCoupon, 
-        discount: discountAmount, 
-        total 
-      } 
-    });
+    const checkoutState = { 
+      cartItems: cart, 
+      coupon: appliedCoupon, 
+      discount: discountAmount, 
+      total 
+    };
+
+    if (!user) {
+      navigate('/login', { 
+        state: { 
+          redirectTo: '/pdf-checkout', 
+          checkoutState,
+          checkoutMessage: lang === 'EN' 
+            ? 'Please log in to proceed with your eBook checkout.' 
+            : 'বই কেনার প্রক্রিয়া সম্পন্ন করার জন্য দয়া করে আগে লগইন করুন।'
+        } 
+      });
+      return;
+    }
+
+    navigate('/pdf-checkout', { state: checkoutState });
   };
 
   return (

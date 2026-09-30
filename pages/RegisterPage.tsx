@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion as m, AnimatePresence } from 'framer-motion';
 const motion = m as any;
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { User as UserIcon, Mail, Phone, Lock, ArrowRight, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { Language, User } from '../types';
 import { dataService } from '../services/dataService';
@@ -17,6 +17,7 @@ interface Props {
 
 const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '', password: '', goal: 'Study'
@@ -24,6 +25,17 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
   const [error, setError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const redirectTo = location.state?.redirectTo;
+  const checkoutState = location.state?.checkoutState;
+
+  const handlePostRegisterRedirect = (foundUser: User) => {
+    if (redirectTo) {
+      navigate(redirectTo, { state: checkoutState });
+    } else {
+      navigate('/dashboard');
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setError('');
@@ -75,7 +87,7 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
       if (foundUser) {
         localStorage.setItem('huayu_user', JSON.stringify(foundUser));
         setUser(foundUser);
-        navigate('/dashboard');
+        handlePostRegisterRedirect(foundUser);
       }
     } catch (err: any) {
       console.error("Google Login Error:", err);
@@ -384,7 +396,7 @@ const RegisterPage: React.FC<Props> = ({ lang, setUser }) => {
 
         <div className="mt-12 text-center text-xs font-bold uppercase tracking-widest">
           <span className="text-zinc-400">{lang === 'EN' ? 'Returning Student?' : 'একাউন্ট আছে?'}</span>{' '}
-          <Link to="/login" className="text-[#C1121F] hover:underline transition-colors">{lang === 'EN' ? 'Login Portal' : 'লগইন করুন'}</Link>
+          <Link to="/login" state={location.state} className="text-[#C1121F] hover:underline transition-colors">{lang === 'EN' ? 'Login Portal' : 'লগইন করুন'}</Link>
         </div>
       </motion.div>
     </div>

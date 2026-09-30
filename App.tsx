@@ -292,7 +292,7 @@ const App: React.FC = () => {
         <main className="flex-grow pt-24 transition-all">
           <Routes>
             <Route path="/" element={<HomePage lang={lang} />} />
-            <Route path="/store" element={<StorePage lang={lang} />} />
+            <Route path="/store" element={<StorePage lang={lang} user={currentUser} />} />
             <Route path="/about" element={<AboutPage lang={lang} />} />
             <Route path="/courses" element={<CoursesPage lang={lang} user={currentUser} />} />
             <Route path="/learn" element={<Navigate to="/store" replace />} />

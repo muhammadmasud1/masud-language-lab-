@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 // Use a cast to any to bypass broken type definitions for motion components in this environment
 import { motion as m } from 'framer-motion';
 const motion = m as any;
-import { Mail, Phone, MapPin, Send, MessageCircle, User, MessageSquare, Info } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, MessageCircle, User, MessageSquare, Info, Copy, Check } from 'lucide-react';
 import { Language } from '../types';
+import { WeChatIcon } from '../components/SocialButtons';
 
 interface Props { lang: Language; }
 
@@ -15,6 +16,15 @@ const ContactPage: React.FC<Props> = ({ lang }) => {
     subject: '',
     message: ''
   });
+  const [wechatCopied, setWechatCopied] = useState(false);
+
+  const wechatId = 'muhammadmasud1';
+
+  const handleCopyWechat = () => {
+    navigator.clipboard.writeText(wechatId);
+    setWechatCopied(true);
+    setTimeout(() => setWechatCopied(false), 2500);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,14 +79,34 @@ const ContactPage: React.FC<Props> = ({ lang }) => {
               : 'কোনো প্রজেক্ট বা চাইনিজ শিখতে চান? দ্রুত উত্তরের জন্য হোয়াটসঅ্যাপের মাধ্যমে যোগাযোগ করুন।'}
           </p>
 
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="flex items-start gap-6 group">
               <div className="w-14 h-14 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center text-[#C1121F] shrink-0 shadow-lg shadow-black/5 group-hover:bg-[#C1121F] group-hover:text-white transition-all">
                 <Mail className="w-6 h-6" />
               </div>
               <div>
                 <h4 className="font-black text-sm uppercase tracking-widest text-zinc-400 mb-1">{lang === 'EN' ? 'Official Email' : 'অফিশিয়াল ইমেইল'}</h4>
-                <p className="text-xl font-bold text-zinc-900 dark:text-white">mdmasudrana0783@gmail.com</p>
+                <p className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white">mdmasudrana0783@gmail.com</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-6 group">
+              <div className="w-14 h-14 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-center text-[#07C160] shrink-0 shadow-lg shadow-black/5 group-hover:bg-[#07C160] group-hover:text-white transition-all">
+                <WeChatIcon className="w-7 h-7 fill-current" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="font-black text-sm uppercase tracking-widest text-zinc-400 mb-1">{lang === 'EN' ? 'Official WeChat ID' : 'অফিশিয়াল উইচ্যাট আইডি'}</h4>
+                  <button 
+                    onClick={handleCopyWechat}
+                    className="text-xs font-bold text-[#07C160] hover:underline flex items-center gap-1"
+                  >
+                    {wechatCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {wechatCopied ? 'Copied!' : 'Copy ID'}
+                  </button>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white font-mono">{wechatId}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Search "{wechatId}" on WeChat to connect directly</p>
               </div>
             </div>
 
@@ -86,7 +116,7 @@ const ContactPage: React.FC<Props> = ({ lang }) => {
               </div>
               <div>
                 <h4 className="font-black text-sm uppercase tracking-widest text-zinc-400 mb-1">{lang === 'EN' ? 'Direct Line / WhatsApp' : 'ফোন / হোয়াটসঅ্যাপ'}</h4>
-                <p className="text-xl font-bold text-zinc-900 dark:text-white">+880 1788 060657</p>
+                <p className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white">+880 1788 060657</p>
               </div>
             </div>
 
@@ -96,22 +126,26 @@ const ContactPage: React.FC<Props> = ({ lang }) => {
               </div>
               <div>
                 <h4 className="font-black text-sm uppercase tracking-widest text-zinc-400 mb-1">{lang === 'EN' ? 'Consultancy Office' : 'পরামর্শ অফিস'}</h4>
-                <p className="text-xl font-bold text-zinc-900 dark:text-white">Panchagarh, Rangpur, Bangladesh</p>
+                <p className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white">Panchagarh, Rangpur, Bangladesh</p>
               </div>
             </div>
           </div>
 
-          <div className="mt-16 flex flex-wrap gap-4">
+          <div className="mt-12 flex flex-wrap gap-4">
             <a 
               href="https://wa.me/8801788060657" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-3 px-8 py-4 bg-green-500 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-green-600 transition-all shadow-xl shadow-green-500/20 active:scale-95"
+              className="flex items-center gap-3 px-8 py-4 bg-[#25D366] text-white rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-[#20ba5a] transition-all shadow-xl shadow-green-500/20 active:scale-95"
             >
               <MessageCircle className="w-5 h-5" /> Direct WhatsApp
             </a>
-            <button className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95">
-               Messenger Support
+            <button 
+              onClick={handleCopyWechat}
+              className="flex items-center gap-3 px-8 py-4 bg-[#07C160] text-white rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-[#06ad56] transition-all shadow-xl shadow-emerald-500/20 active:scale-95"
+            >
+              <WeChatIcon className="w-5 h-5 fill-white" />
+              {wechatCopied ? 'WeChat ID Copied!' : `WeChat: ${wechatId}`}
             </button>
           </div>
         </motion.div>

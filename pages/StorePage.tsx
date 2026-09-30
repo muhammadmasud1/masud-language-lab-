@@ -5,7 +5,7 @@ import {
   BookOpen, Sparkles, Download, Zap, Check, ArrowRight, Tag, Layers,
   Award, Briefcase, MessageSquare, Book, X, SlidersHorizontal, ArrowUpDown
 } from 'lucide-react';
-import { Language, PdfProduct, PdfCategory, HskLevel } from '../types';
+import { Language, PdfProduct, PdfCategory, HskLevel, User } from '../types';
 import { useNavigate, Link } from 'react-router-dom';
 import { pdfService, DEMO_PDF_PRODUCTS } from '../services/pdfService';
 import PdfPreviewModal from '../components/PdfPreviewModal';
@@ -15,6 +15,7 @@ import { CurrencyType, getStoredCurrency } from '../services/currencyService';
 
 interface Props { 
   lang: Language; 
+  user?: User | null;
 }
 
 export type StoreCategoryFilter = 
@@ -50,7 +51,7 @@ const HSK_SUB_LEVELS: ('All' | HskLevel)[] = [
   'HSK 6'
 ];
 
-const StorePage: React.FC<Props> = ({ lang }) => {
+const StorePage: React.FC<Props> = ({ lang, user }) => {
   const navigate = useNavigate();
 
   const [products, setProducts] = useState<PdfProduct[]>(() => {
@@ -130,6 +131,22 @@ const StorePage: React.FC<Props> = ({ lang }) => {
   const handleOpenPreview = (product: PdfProduct) => {
     setPreviewProduct(product);
     setIsPreviewOpen(true);
+  };
+
+  const handleBuyNow = (book: PdfProduct) => {
+    if (!user) {
+      navigate('/login', {
+        state: {
+          redirectTo: '/pdf-checkout',
+          checkoutState: { product: book },
+          checkoutMessage: lang === 'EN' 
+            ? 'Please log in to purchase this eBook and access your digital shelf.' 
+            : 'বইটি কেনার জন্য দয়া করে আগে আপনার একাউন্টে লগইন করুন।'
+        }
+      });
+      return;
+    }
+    navigate('/pdf-checkout', { state: { product: book } });
   };
 
   // Check if a book matches a category
@@ -692,7 +709,7 @@ const StorePage: React.FC<Props> = ({ lang }) => {
 
                     <div className="grid grid-cols-2 gap-2">
                       <button
-                        onClick={() => navigate('/pdf-checkout', { state: { product: book } })}
+                        onClick={() => handleBuyNow(book)}
                         className="py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1 shadow-md shadow-red-600/20 transition active:scale-95"
                       >
                         <Zap className="w-3.5 h-3.5 fill-white" />
@@ -798,6 +815,7 @@ const StorePage: React.FC<Props> = ({ lang }) => {
         onRemove={handleRemoveFromCart}
         onClear={() => { setCart([]); localStorage.removeItem('mandarinshelf_cart'); }}
         lang={lang}
+        user={user}
       />
     </div>
   );

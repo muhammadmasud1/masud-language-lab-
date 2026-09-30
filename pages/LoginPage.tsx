@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { motion as m } from 'framer-motion';
 const motion = m as any;
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, Chrome } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, Chrome, ShieldAlert, BookOpen } from 'lucide-react';
 import { Language, User } from '../types';
 import { dataService } from '../services/dataService';
 
@@ -17,11 +17,26 @@ interface Props {
 
 const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+
+  const redirectTo = location.state?.redirectTo;
+  const checkoutState = location.state?.checkoutState;
+  const checkoutMessage = location.state?.checkoutMessage;
+
+  const handlePostLoginRedirect = (foundUser: User) => {
+    if (redirectTo) {
+      navigate(redirectTo, { state: checkoutState });
+    } else if (foundUser.isAdmin) {
+      navigate('/admin');
+    } else {
+      navigate('/dashboard');
+    }
+  };
 
   const handleForgotPassword = async () => {
     if (!formData.email) {
@@ -89,12 +104,7 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
       if (foundUser) {
         localStorage.setItem('huayu_user', JSON.stringify(foundUser));
         setUser(foundUser);
-        
-        if (foundUser.isAdmin) {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
-        }
+        handlePostLoginRedirect(foundUser);
       }
     } catch (err: any) {
       console.error("Google Login Error:", err);
@@ -136,12 +146,7 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
       if (foundUser) {
         localStorage.setItem('huayu_user', JSON.stringify(foundUser));
         setUser(foundUser);
-        
-        if (foundUser.isAdmin) {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
-        }
+        handlePostLoginRedirect(foundUser);
       } else {
         setError(lang === 'EN' ? 'User profile not found in database.' : 'ডাটাবেসে ইউজার প্রোফাইল পাওয়া যায়নি।');
         await signOut(auth);
@@ -165,21 +170,46 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-md w-full bg-white dark:bg-zinc-900 p-8 md:p-14 rounded-[3.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl shadow-red-500/5"
       >
-        <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-[2rem] flex items-center justify-center text-[#C1121F] text-3xl font-black chinese-font mx-auto mb-8 shadow-lg shadow-red-500/10">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-[2rem] flex items-center justify-center text-[#C1121F] text-3xl font-black chinese-font mx-auto mb-6 shadow-lg shadow-red-500/10">
             华
           </div>
-          <h1 className="text-4xl font-black mb-3 tracking-tight">{lang === 'EN' ? 'Academy Portal' : 'লগইন'}</h1>
-          <p className="text-sm text-zinc-500 font-medium">{lang === 'EN' ? 'Continue your Mandarin excellence.' : 'আপনার শিক্ষা যাত্রা চালিয়ে যেতে লগইন করুন।'}</p>
+          <h1 className="text-3xl sm:text-4xl font-black mb-2 tracking-tight">{lang === 'EN' ? 'Account Login' : 'লগইন'}</h1>
+          <p className="text-xs sm:text-sm text-zinc-500 font-medium">
+            {redirectTo 
+              ? (lang === 'EN' ? 'Please log in to complete your eBook purchase.' : 'বই কেনার প্রক্রিয়া সম্পন্ন করতে লগইন করুন।')
+              : (lang === 'EN' ? 'Continue your Mandarin excellence.' : 'আপনার শিক্ষা যাত্রা চালিয়ে যেতে লগইন করুন।')}
+          </p>
         </div>
+
+        {/* Prominent Login Required Notice for Book Purchase */}
+        {redirectTo && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-2xl flex items-start gap-3 shadow-sm"
+          >
+            <ShieldAlert className="w-5 h-5 text-[#C1121F] shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-xs font-black text-[#C1121F] uppercase tracking-wider">
+                {lang === 'EN' ? 'Login Required to Buy' : 'বই কেনার জন্য লগইন আবশ্যক'}
+              </h4>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                {checkoutMessage || (lang === 'EN' 
+                  ? 'You must be logged in to purchase and access digital eBooks with lifetime download rights.' 
+                  : 'ডিজিটাল বই কিনতে এবং লাইফটাইম অ্যাক্সেস পেতে একাউন্টে লগইন করুন।')}
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         {error && (
           <motion.div 
             initial={{ opacity: 0, y: -10 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="mb-10 p-5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 text-red-600 rounded-2xl flex items-center gap-4 text-sm font-bold"
+            className="mb-8 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 text-red-600 rounded-2xl flex items-center gap-4 text-xs font-bold"
           >
-            <AlertCircle className="w-6 h-6 shrink-0" />
+            <AlertCircle className="w-5 h-5 shrink-0" />
             {error}
           </motion.div>
         )}
@@ -188,14 +218,14 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
           <motion.div 
             initial={{ opacity: 0, y: -10 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="mb-10 p-5 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/40 text-green-600 rounded-2xl flex items-center gap-4 text-sm font-bold"
+            className="mb-8 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/40 text-green-600 rounded-2xl flex items-center gap-4 text-xs font-bold"
           >
-            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">✓</div>
+            <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</div>
             {successMsg}
           </motion.div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-8">
+        <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-3">
             <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">{lang === 'EN' ? 'Gmail Address' : 'জিমেইল ঠিকানা'}</label>
             <div className="relative group">
@@ -274,7 +304,7 @@ const LoginPage: React.FC<Props> = ({ lang, setUser }) => {
 
         <div className="mt-12 text-center text-[10px] font-black uppercase tracking-widest">
           <span className="text-zinc-400">{lang === 'EN' ? "Academy Newcomer?" : "একাউন্ট নেই?"}</span>{' '}
-          <Link to="/register" className="text-[#C1121F] hover:underline transition-colors">{lang === 'EN' ? "Join Registry" : "নিবন্ধন করুন"}</Link>
+          <Link to="/register" state={location.state} className="text-[#C1121F] hover:underline transition-colors">{lang === 'EN' ? "Join Registry" : "নিবন্ধন করুন"}</Link>
         </div>
       </motion.div>
     </div>
